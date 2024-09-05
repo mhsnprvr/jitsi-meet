@@ -10,7 +10,6 @@ import { ASPECT_RATIO_WIDE } from '../../../base/responsive-ui/constants';
 import IconButton from '../../../base/ui/components/native/IconButton';
 import Input from '../../../base/ui/components/native/Input';
 import { BUTTON_TYPES } from '../../../base/ui/constants.native';
-import { CHAR_LIMIT } from '../../constants';
 
 import styles from './styles';
 
@@ -85,6 +84,7 @@ class ChatInputBar extends Component<IProps, IState> {
 
         return (
             <View
+                id = 'chat-input'
                 style = { [
                     inputBarStyles,
                     this.state.addPadding ? styles.extraBarPadding : null
@@ -92,7 +92,7 @@ class ChatInputBar extends Component<IProps, IState> {
                 <Input
                     blurOnSubmit = { false }
                     customStyles = {{ container: styles.customInputContainer }}
-                    maxLength = { CHAR_LIMIT }
+                    id = 'chat-input-messagebox'
                     multiline = { false }
                     onBlur = { this._onFocused(false) }
                     onChange = { this._onChangeText }
@@ -103,6 +103,7 @@ class ChatInputBar extends Component<IProps, IState> {
                     value = { this.state.message } />
                 <IconButton
                     disabled = { !this.state.message }
+                    id = { this.props.t('chat.sendButton') }
                     onPress = { this._onSubmit }
                     src = { IconSend }
                     type = { BUTTON_TYPES.PRIMARY } />

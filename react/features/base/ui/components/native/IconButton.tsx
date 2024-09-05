@@ -11,6 +11,7 @@ const IconButton: React.FC<IIconButtonProps> = ({
     accessibilityLabel,
     color: iconColor,
     disabled,
+    id,
     onPress,
     size,
     src,

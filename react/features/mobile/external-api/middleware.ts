@@ -1,8 +1,8 @@
 /* eslint-disable lines-around-comment */
 
-import debounce from "lodash/debounce";
-import { NativeEventEmitter, NativeModules } from "react-native";
-import { AnyAction } from "redux";
+import { debounce } from 'lodash-es';
+import { NativeEventEmitter, NativeModules } from 'react-native';
+import { AnyAction } from 'redux';
 
 // @ts-expect-error
 import { ENDPOINT_TEXT_MESSAGE_NAME } from "../../../../modules/API/constants";
@@ -34,25 +34,26 @@ import {
     getLocalParticipant,
     getParticipantById,
     getRemoteParticipants,
-    isScreenShareParticipantById,
-} from "../../base/participants/functions";
-import MiddlewareRegistry from "../../base/redux/MiddlewareRegistry";
-import StateListenerRegistry from "../../base/redux/StateListenerRegistry";
-import { toggleScreensharing } from "../../base/tracks/actions.native";
-import { getLocalTracks, isLocalTrackMuted } from "../../base/tracks/functions.native";
-import { ITrack } from "../../base/tracks/types";
-import { CLOSE_CHAT, OPEN_CHAT } from "../../chat/actionTypes";
-import { closeChat, openChat, sendMessage, setPrivateMessageRecipient } from "../../chat/actions.native";
-import { setRequestingSubtitles } from "../../subtitles/actions.any";
-import { muteLocal } from "../../video-menu/actions.native";
-import { ENTER_PICTURE_IN_PICTURE } from "../picture-in-picture/actionTypes";
+    isScreenShareParticipantById
+} from '../../base/participants/functions';
+import MiddlewareRegistry from '../../base/redux/MiddlewareRegistry';
+import StateListenerRegistry from '../../base/redux/StateListenerRegistry';
+import { toggleScreensharing } from '../../base/tracks/actions.native';
+import { getLocalTracks, isLocalTrackMuted } from '../../base/tracks/functions.native';
+import { ITrack } from '../../base/tracks/types';
+import { CLOSE_CHAT, OPEN_CHAT } from '../../chat/actionTypes';
+import { closeChat, openChat, sendMessage, setPrivateMessageRecipient } from '../../chat/actions.native';
+import { setRequestingSubtitles } from '../../subtitles/actions.any';
+import { CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED } from '../../toolbox/actionTypes';
+import { muteLocal } from '../../video-menu/actions.native';
+import { ENTER_PICTURE_IN_PICTURE } from '../picture-in-picture/actionTypes';
 // @ts-ignore
 import { isExternalAPIAvailable } from "../react-native-sdk/functions";
 
-import { CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED, READY_TO_CLOSE } from "./actionTypes";
-import { setParticipantsWithScreenShare } from "./actions";
-import { participantToParticipantInfo, sendEvent } from "./functions";
-import logger from "./logger";
+import { READY_TO_CLOSE } from './actionTypes';
+import { setParticipantsWithScreenShare } from './actions';
+import { participantToParticipantInfo, sendEvent } from './functions';
+import logger from './logger';
 
 /**
  * Event which will be emitted on the native side when a chat message is received
@@ -75,11 +76,6 @@ const LIKE = "LIKE";
 const DISLIKE = "DISLIKE";
 const CHEER = "CHEER";
 const BOO = "BOO";
-
-/**
- * Event which will be emitted on the native side to indicate that the custom overflow menu button was pressed.
- */
-const CUSTOM_MENU_BUTTON_PRESSED = "CUSTOM_MENU_BUTTON_PRESSED";
 
 /**
  * Event which will be emitted on the native side to indicate a message was received
@@ -207,10 +203,13 @@ externalAPIEnabled &&
             case CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED: {
                 const { id, text } = action;
 
-                sendEvent(store, CUSTOM_MENU_BUTTON_PRESSED, {
-                    id,
-                    text,
-                });
+        sendEvent(
+            store,
+            CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED,
+            {
+                id,
+                text
+            });
 
                 break;
             }

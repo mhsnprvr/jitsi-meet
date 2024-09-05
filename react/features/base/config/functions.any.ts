@@ -3,7 +3,7 @@ import { jitsiLocalStorage } from '@jitsi/js-utils';
 // eslint-disable-next-line lines-around-comment
 // @ts-ignore
 import { safeJsonParse } from '@jitsi/js-utils/json';
-import _ from 'lodash';
+import { isEmpty, mergeWith, pick } from 'lodash-es';
 
 import { IReduxState } from '../../app/types';
 import { getLocalParticipant } from '../participants/functions';
@@ -89,7 +89,37 @@ export function getFeatureFlag(state: IReduxState, featureFlag: string) {
  * @returns {boolean}
  */
 export function getDisableRemoveRaisedHandOnFocus(state: IReduxState) {
-    return state['features/base/config']?.disableRemoveRaisedHandOnFocus || false;
+    return state['features/base/config']?.raisedHands?.disableRemoveRaisedHandOnFocus || false;
+}
+
+/**
+ * Selector used to get the disableLowerHandByModerator.
+ *
+ * @param {Object} state - The global state.
+ * @returns {boolean}
+ */
+export function getDisableLowerHandByModerator(state: IReduxState) {
+    return state['features/base/config']?.raisedHands?.disableLowerHandByModerator || false;
+}
+
+/**
+ * Selector used to get the disableLowerHandNotification.
+ *
+ * @param {Object} state - The global state.
+ * @returns {boolean}
+ */
+export function getDisableLowerHandNotification(state: IReduxState) {
+    return state['features/base/config']?.raisedHands?.disableLowerHandNotification || true;
+}
+
+/**
+ * Selector used to get the disableNextSpeakerNotification.
+ *
+ * @param {Object} state - The global state.
+ * @returns {boolean}
+ */
+export function getDisableNextSpeakerNotification(state: IReduxState) {
+    return state['features/base/config']?.raisedHands?.disableNextSpeakerNotification || false;
 }
 
 /**
@@ -136,13 +166,11 @@ export function overrideConfigJSON(config: IConfig, interfaceConfig: any, json: 
             const configJSON
                 = getWhitelistedJSON(configName as 'interfaceConfig' | 'config', json[configName]);
 
-            if (!_.isEmpty(configJSON)) {
-                logger.info(
-                    `Extending ${configName} with: ${
-                        JSON.stringify(configJSON)}`);
+            if (!isEmpty(configJSON)) {
+                logger.info(`Extending ${configName} with: ${JSON.stringify(configJSON)}`);
 
                 // eslint-disable-next-line arrow-body-style
-                _.mergeWith(configObj, configJSON, (oldValue, newValue) => {
+                mergeWith(configObj, configJSON, (oldValue, newValue) => {
 
                     // XXX We don't want to merge the arrays, we want to
                     // overwrite them.
@@ -166,9 +194,9 @@ export function overrideConfigJSON(config: IConfig, interfaceConfig: any, json: 
  */
 export function getWhitelistedJSON(configName: 'interfaceConfig' | 'config', configJSON: any): Object {
     if (configName === 'interfaceConfig') {
-        return _.pick(configJSON, INTERFACE_CONFIG_WHITELIST);
+        return pick(configJSON, INTERFACE_CONFIG_WHITELIST);
     } else if (configName === 'config') {
-        return _.pick(configJSON, CONFIG_WHITELIST);
+        return pick(configJSON, CONFIG_WHITELIST);
     }
 
     return configJSON;

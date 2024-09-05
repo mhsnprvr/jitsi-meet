@@ -12,23 +12,24 @@ import { showNotification } from "../../notifications/actions";
 import {
     LOCAL_RECORDING_NOTIFICATION_ID,
     NOTIFICATION_TIMEOUT_TYPE,
-    RAISE_HAND_NOTIFICATION_ID,
-} from "../../notifications/constants";
-import { isForceMuted } from "../../participants-pane/functions";
-import { CALLING, INVITED } from "../../presence-status/constants";
-import { RAISE_HAND_SOUND_ID } from "../../reactions/constants";
-import { RECORDING_OFF_SOUND_ID, RECORDING_ON_SOUND_ID } from "../../recording/constants";
-import { APP_WILL_MOUNT, APP_WILL_UNMOUNT } from "../app/actionTypes";
-import { CONFERENCE_JOINED, CONFERENCE_WILL_JOIN } from "../conference/actionTypes";
-import { forEachConference, getCurrentConference } from "../conference/functions";
-import { IJitsiConference } from "../conference/reducer";
-import { SET_CONFIG } from "../config/actionTypes";
-import { getDisableRemoveRaisedHandOnFocus } from "../config/functions.any";
-import { JitsiConferenceEvents } from "../lib-jitsi-meet";
-import { MEDIA_TYPE } from "../media/constants";
-import MiddlewareRegistry from "../redux/MiddlewareRegistry";
-import StateListenerRegistry from "../redux/StateListenerRegistry";
-import { playSound, registerSound, unregisterSound } from "../sounds/actions";
+    RAISE_HAND_NOTIFICATION_ID
+} from '../../notifications/constants';
+import { open as openParticipantsPane } from '../../participants-pane/actions';
+import { isForceMuted } from '../../participants-pane/functions';
+import { CALLING, INVITED } from '../../presence-status/constants';
+import { RAISE_HAND_SOUND_ID } from '../../reactions/constants';
+import { RECORDING_OFF_SOUND_ID, RECORDING_ON_SOUND_ID } from '../../recording/constants';
+import { APP_WILL_MOUNT, APP_WILL_UNMOUNT } from '../app/actionTypes';
+import { CONFERENCE_JOINED, CONFERENCE_WILL_JOIN } from '../conference/actionTypes';
+import { forEachConference, getCurrentConference } from '../conference/functions';
+import { IJitsiConference } from '../conference/reducer';
+import { SET_CONFIG } from '../config/actionTypes';
+import { getDisableRemoveRaisedHandOnFocus } from '../config/functions.any';
+import { JitsiConferenceEvents } from '../lib-jitsi-meet';
+import { MEDIA_TYPE } from '../media/constants';
+import MiddlewareRegistry from '../redux/MiddlewareRegistry';
+import StateListenerRegistry from '../redux/StateListenerRegistry';
+import { playSound, registerSound, unregisterSound } from '../sounds/actions';
 
 import {
     DOMINANT_SPEAKER_CHANGED,
@@ -825,12 +826,19 @@ function _raiseHandUpdated(
             isForceMuted(participant, MEDIA_TYPE.AUDIO, state) || isForceMuted(participant, MEDIA_TYPE.VIDEO, state);
     }
 
-    const action = shouldDisplayAllowAction
-        ? {
-              customActionNameKey: ["notify.allowAction"],
-              customActionHandler: [() => dispatch(approveParticipant(participantId))],
-          }
-        : {};
+    let action;
+
+    if (shouldDisplayAllowAction) {
+        action = {
+            customActionNameKey: [ 'notify.allowAction' ],
+            customActionHandler: [ () => dispatch(approveParticipant(participantId)) ]
+        };
+    } else {
+        action = {
+            customActionNameKey: [ 'notify.viewParticipants' ],
+            customActionHandler: [ () => dispatch(openParticipantsPane()) ]
+        };
+    }
 
     if (raisedHandTimestamp) {
         let notificationTitle;
@@ -847,19 +855,14 @@ function _raiseHandUpdated(
         } else {
             notificationTitle = participantName;
         }
-        dispatch(
-            showNotification(
-                {
-                    titleKey: "notify.somebody",
-                    title: notificationTitle,
-                    descriptionKey: "notify.raisedHand",
-                    concatText: true,
-                    uid: RAISE_HAND_NOTIFICATION_ID,
-                    ...action,
-                },
-                shouldDisplayAllowAction ? NOTIFICATION_TIMEOUT_TYPE.MEDIUM : NOTIFICATION_TIMEOUT_TYPE.SHORT
-            )
-        );
+        dispatch(showNotification({
+            titleKey: 'notify.somebody',
+            title: notificationTitle,
+            descriptionKey: 'notify.raisedHand',
+            concatText: true,
+            uid: RAISE_HAND_NOTIFICATION_ID,
+            ...action
+        }, NOTIFICATION_TIMEOUT_TYPE.MEDIUM));
         dispatch(playSound(RAISE_HAND_SOUND_ID));
     }
 }

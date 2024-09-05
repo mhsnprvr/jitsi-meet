@@ -20,7 +20,7 @@ import { useFeedbackButton } from '../feedback/hooks.web';
 import { setGifMenuVisibility } from '../gifs/actions';
 import { isGifEnabled } from '../gifs/function.any';
 import InviteButton from '../invite/components/add-people-dialog/web/InviteButton';
-import { registerShortcut, unregisterShortcut } from '../keyboard-shortcuts/actions.any';
+import { registerShortcut, unregisterShortcut } from '../keyboard-shortcuts/actions.web';
 import { useKeyboardShortcutsButton } from '../keyboard-shortcuts/hooks.web';
 import NoiseSuppressionButton from '../noise-suppression/components/NoiseSuppressionButton';
 import {
@@ -37,21 +37,21 @@ import { toggleReactionsMenuVisibility } from '../reactions/actions.web';
 import RaiseHandContainerButton from '../reactions/components/web/RaiseHandContainerButtons';
 import { REACTIONS } from '../reactions/constants';
 import { shouldDisplayReactionsButtons } from '../reactions/functions.any';
-import { useReactionsButton } from '../reactions/hooks';
+import { useReactionsButton } from '../reactions/hooks.web';
 import { useLiveStreamingButton, useRecordingButton } from '../recording/hooks.web';
 import { isSalesforceEnabled } from '../salesforce/functions';
 import { startScreenShareFlow } from '../screen-share/actions.web';
 import ShareAudioButton from '../screen-share/components/web/ShareAudioButton';
 import { isScreenAudioSupported, isScreenVideoShared } from '../screen-share/functions';
-import { useSecurityDialogButton } from '../security/hooks';
+import { useSecurityDialogButton } from '../security/hooks.web';
 import SettingsButton from '../settings/components/web/SettingsButton';
-import SharedVideoButton from '../shared-video/components/web/SharedVideoButton';
+import { useSharedVideoButton } from '../shared-video/hooks';
 import SpeakerStats from '../speaker-stats/components/web/SpeakerStats';
 import { isSpeakerStatsDisabled } from '../speaker-stats/functions';
 import { useSpeakerStatsButton } from '../speaker-stats/hooks.web';
 import { useClosedCaptionButton } from '../subtitles/hooks.web';
 import { toggleTileView } from '../video-layout/actions.any';
-import { shouldDisplayTileView } from '../video-layout/functions.any';
+import { shouldDisplayTileView } from '../video-layout/functions.web';
 import { useTileViewButton } from '../video-layout/hooks';
 import VideoQualityButton from '../video-quality/components/VideoQualityButton.web';
 import VideoQualityDialog from '../video-quality/components/VideoQualityDialog.web';
@@ -140,12 +140,6 @@ const linkToSalesforce = {
     key: 'linktosalesforce',
     Content: LinkToSalesforceButton,
     group: 2
-};
-
-const shareVideo = {
-    key: 'sharedvideo',
-    Content: SharedVideoButton,
-    group: 3
 };
 
 const shareAudio = {
@@ -288,6 +282,7 @@ export function useToolboxButtons(
     const liveStreaming = useLiveStreamingButton();
     const linktosalesforce = useLinkToSalesforceButton();
     const shareaudio = getShareAudioButton();
+    const shareVideo = useSharedVideoButton();
     const whiteboard = useWhiteboardButton();
     const etherpad = useEtherpadButton();
     const virtualBackground = useVirtualBackgroundButton();

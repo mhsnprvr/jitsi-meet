@@ -232,8 +232,25 @@ var config = {
     // Sets the preferred resolution (height) for local video. Defaults to 720.
     // resolution: 720,
 
+    // DEPRECATED. Please use raisedHands.disableRemoveRaisedHandOnFocus instead.
     // Specifies whether the raised hand will hide when someone becomes a dominant speaker or not
     // disableRemoveRaisedHandOnFocus: false,
+
+    // Specifies which raised hand related config should be set.
+    // raisedHands: {
+    //     // Specifies whether the raised hand can be lowered by moderator.
+    //     disableLowerHandByModerator: false,
+
+    //     // Specifies whether there is a notification before hiding the raised hand
+    //     // when someone becomes the dominant speaker.
+    //     disableLowerHandNotification: true,
+
+    //     // Specifies whether there is a notification when you are the next speaker in line.
+    //     disableNextSpeakerNotification: false,
+
+    //     // Specifies whether the raised hand will hide when someone becomes a dominant speaker or not.
+    //     disableRemoveRaisedHandOnFocus: false,
+    // },
 
     // speakerStats: {
     //     // Specifies whether the speaker stats is enable or not.
@@ -1426,6 +1443,13 @@ var config = {
     */
     // dynamicBrandingUrl: '',
 
+    // A list of allowed URL domains for shared video.
+    //
+    // NOTE:
+    // '*' is allowed value and it will allow any URL to be used for shared video. We do not recommend using '*',
+    // use it at your own risk!
+    // sharedVideoAllowedURLDomains: [ ],
+
     // Options related to the participants pane.
     // participantsPane: {
     //     // Enables feature
@@ -1756,8 +1780,6 @@ var config = {
     //     tileTime: 5000,
     //     // Limit results by rating: g, pg, pg-13, r. Default value: g.
     //     rating: 'pg',
-    //     // The proxy server url for giphy requests in the web app.
-    //     proxyUrl: 'https://giphy-proxy.example.com',
     // },
 
     // Logging
