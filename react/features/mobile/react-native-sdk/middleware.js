@@ -1,86 +1,109 @@
-import { getAppProp } from '../../base/app/functions';
+import { getAppProp } from "../../base/app/functions";
 import {
     CONFERENCE_BLURRED,
     CONFERENCE_FOCUSED,
     CONFERENCE_JOINED,
     CONFERENCE_LEFT,
     CONFERENCE_WILL_JOIN,
-    ENDPOINT_MESSAGE_RECEIVED
-} from '../../base/conference/actionTypes';
-import { SET_AUDIO_MUTED, SET_VIDEO_MUTED } from '../../base/media/actionTypes';
-import { PARTICIPANT_JOINED, PARTICIPANT_LEFT } from '../../base/participants/actionTypes';
-import MiddlewareRegistry from '../../base/redux/MiddlewareRegistry';
-import { READY_TO_CLOSE } from '../external-api/actionTypes';
-import { participantToParticipantInfo } from '../external-api/functions';
-import { ENTER_PICTURE_IN_PICTURE } from '../picture-in-picture/actionTypes';
+    ENDPOINT_MESSAGE_RECEIVED,
+} from "../../base/conference/actionTypes";
+import { SET_AUDIO_MUTED, SET_VIDEO_MUTED } from "../../base/media/actionTypes";
+import { BOO, LIKE, PARTICIPANT_JOINED, PARTICIPANT_LEFT } from "../../base/participants/actionTypes";
+import MiddlewareRegistry from "../../base/redux/MiddlewareRegistry";
+import { READY_TO_CLOSE } from "../external-api/actionTypes";
+import { participantToParticipantInfo } from "../external-api/functions";
+import { ENTER_PICTURE_IN_PICTURE } from "../picture-in-picture/actionTypes";
 
-import { isExternalAPIAvailable } from './functions';
+import { isExternalAPIAvailable } from "./functions";
 
 const externalAPIEnabled = isExternalAPIAvailable();
-
 
 /**
  * Check if native modules are being used or not.
  * If not, then the init of middleware doesn't happen.
  */
-!externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
-    const result = next(action);
-    const { type } = action;
-    const rnSdkHandlers = getAppProp(store, 'rnSdkHandlers');
+!externalAPIEnabled &&
+    MiddlewareRegistry.register((store) => (next) => (action) => {
+        const result = next(action);
+        const { type } = action;
+        const rnSdkHandlers = getAppProp(store, "rnSdkHandlers");
 
-    switch (type) {
-    case SET_AUDIO_MUTED:
-        rnSdkHandlers?.onAudioMutedChanged?.(action.muted);
-        break;
-    case SET_VIDEO_MUTED:
-        rnSdkHandlers?.onVideoMutedChanged?.(Boolean(action.muted));
-        break;
-    case CONFERENCE_BLURRED:
-        rnSdkHandlers?.onConferenceBlurred?.();
-        break;
-    case CONFERENCE_FOCUSED:
-        rnSdkHandlers?.onConferenceFocused?.();
-        break;
-    case CONFERENCE_JOINED:
-        rnSdkHandlers?.onConferenceJoined?.();
-        break;
-    case CONFERENCE_LEFT:
-        //  Props are torn down at this point, perhaps need to leave this one out
-        break;
-    case CONFERENCE_WILL_JOIN:
-        rnSdkHandlers?.onConferenceWillJoin?.();
-        break;
-    case ENTER_PICTURE_IN_PICTURE:
-        rnSdkHandlers?.onEnterPictureInPicture?.();
-        break;
-    case ENDPOINT_MESSAGE_RECEIVED: {
-        const { data, participant } = action;
+        switch (type) {
+            case SET_AUDIO_MUTED:
+                rnSdkHandlers?.onAudioMutedChanged?.(action.muted);
+                break;
+            case LIKE: {
+                const { data, participant } = action;
+                rnSdkHandlers?.onLike?.({ data, participant });
+                break;
+            }
+            case DISLIKE: {
+                const { data, participant } = action;
+                rnSdkHandlers?.onDislike?.({ data, participant });
+                break;
+            }
 
-        rnSdkHandlers?.onEndpointMessageReceived?.({
-            data,
-            participant
-        });
-        break;
-    }
-    case PARTICIPANT_JOINED: {
-        const { participant } = action;
-        const participantInfo = participantToParticipantInfo(participant);
+            case CHEER: {
+                const { data, participant } = action;
+                rnSdkHandlers?.onCheer?.({ data, participant });
+                break;
+            }
 
-        rnSdkHandlers?.onParticipantJoined?.(participantInfo);
-        break;
-    }
-    case PARTICIPANT_LEFT: {
-        const { participant } = action;
+            case BOO: {
+                const { data, participant } = action;
+                rnSdkHandlers?.onBoo?.({ data, participant });
+                break;
+            }
 
-        const { id } = participant ?? {};
+            case SET_VIDEO_MUTED:
+                rnSdkHandlers?.onVideoMutedChanged?.(Boolean(action.muted));
+                break;
+            case CONFERENCE_BLURRED:
+                rnSdkHandlers?.onConferenceBlurred?.();
+                break;
+            case CONFERENCE_FOCUSED:
+                rnSdkHandlers?.onConferenceFocused?.();
+                break;
+            case CONFERENCE_JOINED:
+                rnSdkHandlers?.onConferenceJoined?.();
+                break;
+            case CONFERENCE_LEFT:
+                //  Props are torn down at this point, perhaps need to leave this one out
+                break;
+            case CONFERENCE_WILL_JOIN:
+                rnSdkHandlers?.onConferenceWillJoin?.();
+                break;
+            case ENTER_PICTURE_IN_PICTURE:
+                rnSdkHandlers?.onEnterPictureInPicture?.();
+                break;
+            case ENDPOINT_MESSAGE_RECEIVED: {
+                const { data, participant } = action;
 
-        rnSdkHandlers?.onParticipantLeft?.({ id });
-        break;
-    }
-    case READY_TO_CLOSE:
-        rnSdkHandlers?.onReadyToClose?.();
-        break;
-    }
+                rnSdkHandlers?.onEndpointMessageReceived?.({
+                    data,
+                    participant,
+                });
+                break;
+            }
+            case PARTICIPANT_JOINED: {
+                const { participant } = action;
+                const participantInfo = participantToParticipantInfo(participant);
 
-    return result;
-});
+                rnSdkHandlers?.onParticipantJoined?.(participantInfo);
+                break;
+            }
+            case PARTICIPANT_LEFT: {
+                const { participant } = action;
+
+                const { id } = participant ?? {};
+
+                rnSdkHandlers?.onParticipantLeft?.({ id });
+                break;
+            }
+            case READY_TO_CLOSE:
+                rnSdkHandlers?.onReadyToClose?.();
+                break;
+        }
+
+        return result;
+    });

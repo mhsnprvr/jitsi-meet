@@ -1,11 +1,11 @@
 // NB: This import must always come first.
-import './bootstrap.native';
+import "./bootstrap.native";
 
-import React, { PureComponent } from 'react';
-import { AppRegistry } from 'react-native';
+import React, { PureComponent } from "react";
+import { AppRegistry } from "react-native";
 
-import { App } from './features/app/components/App.native';
-import { _initLogging } from './features/base/logging/functions';
+import { App } from "./features/app/components/App.native";
+import { _initLogging } from "./features/base/logging/functions";
 
 /**
  * React Native doesn't support specifying props to the main/root component (in
@@ -22,9 +22,7 @@ class Root extends PureComponent {
      * @returns {ReactElement}
      */
     render() {
-        return (
-            <App { ...this.props } />
-        );
+        return <App {...this.props} />;
     }
 }
 
@@ -32,4 +30,4 @@ class Root extends PureComponent {
 _initLogging();
 
 // Register the main/root Component of JitsiMeetView.
-AppRegistry.registerComponent('App', () => Root);
+AppRegistry.registerComponent("App", () => Root);

@@ -1,6 +1,6 @@
-import withBranding from '../components/withBranding';
+import withBranding from "../components/withBranding";
 
-import { DEFAULT_ICON } from './constants';
+import { DEFAULT_ICON } from "./constants";
 
 const {
     IconAddUser,
@@ -110,14 +110,18 @@ const {
     IconWifi1Bar,
     IconWifi2Bars,
     IconWifi3Bars,
-    IconYahoo
+    IconYahoo,
+    IconLike,
+    IconDislike,
+    IconCheer,
+    IconBoo,
 } = Object.keys(DEFAULT_ICON).reduce((exportedIcons: Record<string, any>, key) => {
     return {
         ...exportedIcons,
         [key]: withBranding({
             iconName: key,
-            DefaultIcon: DEFAULT_ICON[key]
-        })
+            DefaultIcon: DEFAULT_ICON[key],
+        }),
     };
 }, {});
 
@@ -229,5 +233,9 @@ export {
     IconWifi1Bar,
     IconWifi2Bars,
     IconWifi3Bars,
-    IconYahoo
+    IconYahoo,
+    IconLike,
+    IconDislike,
+    IconCheer,
+    IconBoo,
 };

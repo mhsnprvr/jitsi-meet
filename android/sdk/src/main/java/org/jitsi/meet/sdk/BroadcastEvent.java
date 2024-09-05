@@ -79,6 +79,12 @@ public class BroadcastEvent {
         CONFERENCE_FOCUSED("org.jitsi.meet.CONFERENCE_FOCUSED"),
         CONFERENCE_JOINED("org.jitsi.meet.CONFERENCE_JOINED"),
         CONFERENCE_TERMINATED("org.jitsi.meet.CONFERENCE_TERMINATED"),
+        // custom events 
+        LIKE("org.jitsi.meet.LIKE"),
+        DISLIKE("org.jitsi.meet.DISLIKE"),
+        CHEER("org.jitsi.meet.CHEER"),
+        BOO("org.jitsi.meet.BOO"),
+        // end custom events
         CONFERENCE_WILL_JOIN("org.jitsi.meet.CONFERENCE_WILL_JOIN"),
         AUDIO_MUTED_CHANGED("org.jitsi.meet.AUDIO_MUTED_CHANGED"),
         PARTICIPANT_JOINED("org.jitsi.meet.PARTICIPANT_JOINED"),
@@ -98,6 +104,12 @@ public class BroadcastEvent {
         private static final String CONFERENCE_WILL_JOIN_NAME = "CONFERENCE_WILL_JOIN";
         private static final String CONFERENCE_JOINED_NAME = "CONFERENCE_JOINED";
         private static final String CONFERENCE_TERMINATED_NAME = "CONFERENCE_TERMINATED";
+        // custom events
+        private static final String LIKE_NAME = "LIKE";
+        private static final String DISLIKE_NAME = "DISLIKE";
+        private static final String CHEER_NAME = "CHEER";
+        private static final String BOO_NAME = "BOO";
+        // end custom events
         private static final String AUDIO_MUTED_CHANGED_NAME = "AUDIO_MUTED_CHANGED";
         private static final String PARTICIPANT_JOINED_NAME = "PARTICIPANT_JOINED";
         private static final String PARTICIPANT_LEFT_NAME = "PARTICIPANT_LEFT";
@@ -110,6 +122,7 @@ public class BroadcastEvent {
         private static final String READY_TO_CLOSE_NAME = "READY_TO_CLOSE";
         private static final String TRANSCRIPTION_CHUNK_RECEIVED_NAME = "TRANSCRIPTION_CHUNK_RECEIVED";
         private static final String CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED_NAME = "CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED";
+
 
         private final String action;
 
@@ -166,6 +179,16 @@ public class BroadcastEvent {
                     return TRANSCRIPTION_CHUNK_RECEIVED;
                 case CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED_NAME:
                     return CUSTOM_OVERFLOW_MENU_BUTTON_PRESSED;
+                // custom events
+                case LIKE_NAME:
+                    return LIKE;
+                case DISLIKE_NAME:
+                    return DISLIKE;
+                case CHEER_NAME:
+                    return CHEER;
+                case BOO_NAME:
+                    return BOO;
+                // end custom events
             }
 
             return null;

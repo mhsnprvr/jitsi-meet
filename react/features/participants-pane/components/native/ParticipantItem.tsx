@@ -1,23 +1,18 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import {
-    GestureResponderEvent,
-    StyleProp,
-    TextStyle,
-    TouchableOpacity,
-    View,
-    ViewStyle
-} from 'react-native';
-import { Text } from 'react-native-paper';
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { GestureResponderEvent, StyleProp, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native";
+import { Text } from "react-native-paper";
 
-import Avatar from '../../../base/avatar/components/Avatar';
-import { AudioStateIcons, MEDIA_STATE, type MediaState, VideoStateIcons } from '../../constants';
+import Avatar from "../../../base/avatar/components/Avatar";
+import { AudioStateIcons, MEDIA_STATE, type MediaState, VideoStateIcons } from "../../constants";
 
-import { RaisedHandIndicator } from './RaisedHandIndicator';
-import styles from './styles';
+import { RaisedHandIndicator } from "./RaisedHandIndicator";
+import styles from "./styles";
+import { getLogger } from "../../../base/logging/functions";
+import { useDispatch } from "react-redux";
+import { LIKE } from "../../../base/participants/actionTypes";
 
 interface IProps {
-
     /**
      * Media state for audio.
      */
@@ -74,6 +69,8 @@ interface IProps {
     videoMediaState?: MediaState;
 }
 
+const logger = getLogger("ParticipantItem");
+
 /**
  * Participant item.
  *
@@ -90,54 +87,54 @@ function ParticipantItem({
     participantID,
     raisedHand,
     audioMediaState = MEDIA_STATE.NONE,
-    videoMediaState = MEDIA_STATE.NONE
+    videoMediaState = MEDIA_STATE.NONE,
 }: IProps) {
-
     const { t } = useTranslation();
-    const participantNameContainerStyles
-        = isKnockingParticipant ? styles.lobbyParticipantNameContainer : styles.participantNameContainer;
+    const participantNameContainerStyles = isKnockingParticipant
+        ? styles.lobbyParticipantNameContainer
+        : styles.participantNameContainer;
+    const dispatch = useDispatch();
 
     return (
-        <View style = { styles.participantContainer as StyleProp<ViewStyle> } >
+        <View style={styles.participantContainer as StyleProp<ViewStyle>}>
             <TouchableOpacity
-                onPress = { onPress }
-                style = { styles.participantContent as StyleProp<ViewStyle> }>
-                <Avatar
-                    displayName = { displayName }
-                    participantId = { participantID }
-                    size = { 32 } />
+                onPress={(e) => {
+                    onPress(e);
+                }}
+                style={styles.participantContent as StyleProp<ViewStyle>}
+            >
+                <Avatar displayName={displayName} participantId={participantID} size={32} />
                 <View
-                    style = { [
-                        styles.participantDetailsContainer,
-                        raisedHand && styles.participantDetailsContainerRaisedHand
-                    ] as StyleProp<ViewStyle> }>
-                    <View style = { participantNameContainerStyles as StyleProp<ViewStyle> }>
-                        <Text
-                            numberOfLines = { 1 }
-                            style = { styles.participantName as StyleProp<TextStyle> }>
-                            { displayName }
-                            { local && ` (${t('chat.you')})` }
+                    style={
+                        [
+                            styles.participantDetailsContainer,
+                            raisedHand && styles.participantDetailsContainerRaisedHand,
+                        ] as StyleProp<ViewStyle>
+                    }
+                >
+                    <View style={participantNameContainerStyles as StyleProp<ViewStyle>}>
+                        <Text numberOfLines={1} style={styles.participantName as StyleProp<TextStyle>}>
+                            {displayName}
+                            {local && ` (${t("chat.you")})`}
                         </Text>
                     </View>
-                    {
-                        isModerator && !disableModeratorIndicator
-                        && <Text style = { styles.moderatorLabel as StyleProp<TextStyle> }>
-                            { t('videothumbnail.moderator') }
+                    {isModerator && !disableModeratorIndicator && (
+                        <Text style={styles.moderatorLabel as StyleProp<TextStyle>}>
+                            {t("videothumbnail.moderator")}
                         </Text>
-                    }
+                    )}
                 </View>
-                {
-                    !isKnockingParticipant
-                    && <>
-                        { raisedHand && <RaisedHandIndicator /> }
-                        <View style = { styles.participantStatesContainer as StyleProp<ViewStyle> }>
-                            <View style = { styles.participantStateVideo }>{ VideoStateIcons[videoMediaState] }</View>
-                            <View>{ AudioStateIcons[audioMediaState] }</View>
+                {!isKnockingParticipant && (
+                    <>
+                        {raisedHand && <RaisedHandIndicator />}
+                        <View style={styles.participantStatesContainer as StyleProp<ViewStyle>}>
+                            <View style={styles.participantStateVideo}>{VideoStateIcons[videoMediaState]}</View>
+                            <View>{AudioStateIcons[audioMediaState]}</View>
                         </View>
                     </>
-                }
+                )}
             </TouchableOpacity>
-            { !local && children }
+            {!local && children}
         </View>
     );
 }

@@ -37,6 +37,13 @@
  */
 - (void)conferenceTerminated:(NSDictionary *)data;
 
+- (void)like:(NSDictionary *)data;
+
+- (void)dislike:(NSDictionary *)data;
+- (void)cheer:(NSDictionary *)data;
+- (void)boo:(NSDictionary *)data;
+
+
 /**
  * Called before a conference is joined.
  *

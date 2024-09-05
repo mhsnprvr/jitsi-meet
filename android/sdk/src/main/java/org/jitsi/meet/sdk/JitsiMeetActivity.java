@@ -229,6 +229,40 @@ public class JitsiMeetActivity extends AppCompatActivity
     protected void onConferenceTerminated(HashMap<String, Object> extraData) {
         JitsiMeetLogger.i("Conference terminated: " + extraData);
     }
+    // custom events
+    protected void onLike(HashMap<String, Object> extraData) {
+        try {
+            JitsiMeetLogger.i("liked: ", extraData);
+        } catch (Exception e) {
+            JitsiMeetLogger.w("Invalid participant joined extraData", e);
+        }
+    }
+
+    protected void onDislike(HashMap<String, Object> extraData) {
+        try {
+            JitsiMeetLogger.i("disliked: ", extraData);
+        } catch (Exception e) {
+            JitsiMeetLogger.w("Invalid participant joined extraData", e);
+        }
+    }
+
+        protected void onCheer(HashMap<String, Object> extraData) {
+        try {
+            JitsiMeetLogger.i("cheered: ", extraData);
+        } catch (Exception e) {
+            JitsiMeetLogger.w("Invalid participant joined extraData", e);
+        }
+    }
+
+        protected void onBoo(HashMap<String, Object> extraData) {
+        try {
+            JitsiMeetLogger.i("booed: ", extraData);
+        } catch (Exception e) {
+            JitsiMeetLogger.w("Invalid participant joined extraData", e);
+        }
+    }
+
+    // end custom events
 
     protected void onConferenceWillJoin(HashMap<String, Object> extraData) {
         JitsiMeetLogger.i("Conference will join: " + extraData);
@@ -346,6 +380,20 @@ public class JitsiMeetActivity extends AppCompatActivity
                 case READY_TO_CLOSE:
                     onReadyToClose();
                     break;
+                // custom events
+                case LIKE:
+                   onLike(event.getData());
+                    break;
+                case DISLIKE:
+                    onDislike(event.getData());
+                    break;
+                case CHEER:
+                    onCheer(event.getData());
+                    break;
+                case BOO:
+                    onBoo(event.getData());
+                    break;
+                
 //                case TRANSCRIPTION_CHUNK_RECEIVED:
 //                    onTranscriptionChunkReceived(event.getData());
 //                    break;

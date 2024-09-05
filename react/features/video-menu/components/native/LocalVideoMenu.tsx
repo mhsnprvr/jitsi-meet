@@ -1,24 +1,26 @@
-import React, { PureComponent } from 'react';
-import { Text, TextStyle, View, ViewStyle } from 'react-native';
-import { connect } from 'react-redux';
+import React, { PureComponent } from "react";
+import { Text, TextStyle, View, ViewStyle } from "react-native";
+import { connect } from "react-redux";
 
-import { IReduxState, IStore } from '../../../app/types';
-import Avatar from '../../../base/avatar/components/Avatar';
-import { hideSheet } from '../../../base/dialog/actions';
-import BottomSheet from '../../../base/dialog/components/native/BottomSheet';
-import { bottomSheetStyles } from '../../../base/dialog/components/native/styles';
-import { translate } from '../../../base/i18n/functions';
+import { IReduxState, IStore } from "../../../app/types";
+import Avatar from "../../../base/avatar/components/Avatar";
+import { hideSheet } from "../../../base/dialog/actions";
+import BottomSheet from "../../../base/dialog/components/native/BottomSheet";
+import { bottomSheetStyles } from "../../../base/dialog/components/native/styles";
+import { translate } from "../../../base/i18n/functions";
 import {
     getLocalParticipant,
     getParticipantCount,
-    getParticipantDisplayName
-} from '../../../base/participants/functions';
-import { ILocalParticipant } from '../../../base/participants/types';
-import ToggleSelfViewButton from '../../../toolbox/components/native/ToggleSelfViewButton';
+    getParticipantDisplayName,
+} from "../../../base/participants/functions";
+import { ILocalParticipant } from "../../../base/participants/types";
+import ToggleSelfViewButton from "../../../toolbox/components/native/ToggleSelfViewButton";
 
-import ConnectionStatusButton from './ConnectionStatusButton';
-import DemoteToVisitorButton from './DemoteToVisitorButton';
-import styles from './styles';
+import ConnectionStatusButton from "./ConnectionStatusButton";
+import DemoteToVisitorButton from "./DemoteToVisitorButton";
+import styles from "./styles";
+import InteractionButton from "../../../toolbox/components/native/interactionButton";
+import { Divider } from "react-native-paper";
 
 /**
  * Size of the rendered avatar in the menu.
@@ -26,7 +28,6 @@ import styles from './styles';
 const AVATAR_SIZE = 24;
 
 interface IProps {
-
     /**
      * The local participant.
      */
@@ -45,7 +46,7 @@ interface IProps {
     /**
      * The Redux dispatch function.
      */
-    dispatch: IStore['dispatch'];
+    dispatch: IStore["dispatch"];
 
     /**
      * Translation function.
@@ -79,22 +80,22 @@ class LocalVideoMenu extends PureComponent<IProps> {
         const buttonProps = {
             afterClick: this._onCancel,
             showLabel: true,
-            participantID: _participant?.id ?? '',
-            styles: bottomSheetStyles.buttons
+            participantID: _participant?.id ?? "",
+            styles: bottomSheetStyles.buttons,
         };
 
         const connectionStatusButtonProps = {
             ...buttonProps,
-            afterClick: undefined
+            afterClick: undefined,
         };
 
         return (
-            <BottomSheet
-                renderHeader = { this._renderMenuHeader }
-                showSlidingView = { true }>
-                <ToggleSelfViewButton { ...buttonProps } />
-                { _showDemote && <DemoteToVisitorButton { ...buttonProps } /> }
-                <ConnectionStatusButton { ...connectionStatusButtonProps } />
+            <BottomSheet renderHeader={this._renderMenuHeader} showSlidingView={true}>
+                <InteractionButton {...{ ...buttonProps, interactionName: "CHEER" }} />
+                <Divider style={styles.divider as ViewStyle} />
+                <ToggleSelfViewButton {...buttonProps} />
+                {_showDemote && <DemoteToVisitorButton {...buttonProps} />}
+                <ConnectionStatusButton {...connectionStatusButtonProps} />
             </BottomSheet>
         );
     }
@@ -108,16 +109,9 @@ class LocalVideoMenu extends PureComponent<IProps> {
         const { _participant } = this.props;
 
         return (
-            <View
-                style = { [
-                    bottomSheetStyles.sheet,
-                    styles.participantNameContainer ] as ViewStyle[] }>
-                <Avatar
-                    participantId = { _participant?.id }
-                    size = { AVATAR_SIZE } />
-                <Text style = { styles.participantNameLabel as TextStyle }>
-                    { this.props._participantDisplayName }
-                </Text>
+            <View style={[bottomSheetStyles.sheet, styles.participantNameContainer] as ViewStyle[]}>
+                <Avatar participantId={_participant?.id} size={AVATAR_SIZE} />
+                <Text style={styles.participantNameLabel as TextStyle}>{this.props._participantDisplayName}</Text>
             </View>
         );
     }
@@ -141,13 +135,13 @@ class LocalVideoMenu extends PureComponent<IProps> {
  * @returns {IProps}
  */
 function _mapStateToProps(state: IReduxState) {
-    const { disableSelfDemote } = state['features/base/config'];
+    const { disableSelfDemote } = state["features/base/config"];
     const participant = getLocalParticipant(state);
 
     return {
         _participant: participant,
-        _participantDisplayName: getParticipantDisplayName(state, participant?.id ?? ''),
-        _showDemote: !disableSelfDemote && getParticipantCount(state) > 1
+        _participantDisplayName: getParticipantDisplayName(state, participant?.id ?? ""),
+        _showDemote: !disableSelfDemote && getParticipantCount(state) > 1,
     };
 }
 

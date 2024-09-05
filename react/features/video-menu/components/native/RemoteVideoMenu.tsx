@@ -1,42 +1,42 @@
 /* eslint-disable lines-around-comment*/
 
-import React, { PureComponent } from 'react';
-import { Text, TextStyle, View, ViewStyle } from 'react-native';
-import { Divider } from 'react-native-paper';
-import { connect } from 'react-redux';
+import React, { PureComponent } from "react";
+import { Text, TextStyle, View, ViewStyle } from "react-native";
+import { Divider } from "react-native-paper";
+import { connect } from "react-redux";
 
-import { IReduxState, IStore } from '../../../app/types';
-import Avatar from '../../../base/avatar/components/Avatar';
-import { hideSheet } from '../../../base/dialog/actions';
-import BottomSheet from '../../../base/dialog/components/native/BottomSheet';
-import { bottomSheetStyles } from '../../../base/dialog/components/native/styles';
-import { KICK_OUT_ENABLED } from '../../../base/flags/constants';
-import { getFeatureFlag } from '../../../base/flags/functions';
-import { translate } from '../../../base/i18n/functions';
+import { IReduxState, IStore } from "../../../app/types";
+import Avatar from "../../../base/avatar/components/Avatar";
+import { hideSheet } from "../../../base/dialog/actions";
+import BottomSheet from "../../../base/dialog/components/native/BottomSheet";
+import { bottomSheetStyles } from "../../../base/dialog/components/native/styles";
+import { KICK_OUT_ENABLED } from "../../../base/flags/constants";
+import { getFeatureFlag } from "../../../base/flags/functions";
+import { translate } from "../../../base/i18n/functions";
 import {
     getParticipantById,
     getParticipantDisplayName,
     hasRaisedHand,
-    isLocalParticipantModerator
-} from '../../../base/participants/functions';
-import { getBreakoutRooms, getCurrentRoomId, isInBreakoutRoom } from '../../../breakout-rooms/functions';
-import { IRoom } from '../../../breakout-rooms/types';
-import PrivateMessageButton from '../../../chat/components/native/PrivateMessageButton';
+    isLocalParticipantModerator,
+} from "../../../base/participants/functions";
+import { getBreakoutRooms, getCurrentRoomId, isInBreakoutRoom } from "../../../breakout-rooms/functions";
+import { IRoom } from "../../../breakout-rooms/types";
+import PrivateMessageButton from "../../../chat/components/native/PrivateMessageButton";
 
-import AskUnmuteButton from './AskUnmuteButton';
-import ConnectionStatusButton from './ConnectionStatusButton';
-import DemoteToVisitorButton from './DemoteToVisitorButton';
-import GrantModeratorButton from './GrantModeratorButton';
-import KickButton from './KickButton';
-import LowerHandButton from './LowerHandButton';
-import MuteButton from './MuteButton';
-import MuteEveryoneElseButton from './MuteEveryoneElseButton';
-import MuteVideoButton from './MuteVideoButton';
-import PinButton from './PinButton';
-import SendToBreakoutRoom from './SendToBreakoutRoom';
-import VolumeSlider from './VolumeSlider';
-import styles from './styles';
-
+import AskUnmuteButton from "./AskUnmuteButton";
+import ConnectionStatusButton from "./ConnectionStatusButton";
+import DemoteToVisitorButton from "./DemoteToVisitorButton";
+import GrantModeratorButton from "./GrantModeratorButton";
+import KickButton from "./KickButton";
+import LowerHandButton from "./LowerHandButton";
+import MuteButton from "./MuteButton";
+import MuteEveryoneElseButton from "./MuteEveryoneElseButton";
+import MuteVideoButton from "./MuteVideoButton";
+import PinButton from "./PinButton";
+import SendToBreakoutRoom from "./SendToBreakoutRoom";
+import VolumeSlider from "./VolumeSlider";
+import styles from "./styles";
+import InteractionButton from "../../../toolbox/components/native/interactionButton";
 
 /**
  * Size of the rendered avatar in the menu.
@@ -44,7 +44,6 @@ import styles from './styles';
 const AVATAR_SIZE = 24;
 
 interface IProps {
-
     /**
      * The id of the current room.
      */
@@ -113,7 +112,7 @@ interface IProps {
     /**
      * The Redux dispatch function.
      */
-    dispatch: IStore['dispatch'];
+    dispatch: IStore["dispatch"];
 
     /**
      * The ID of the participant for which this menu opened for.
@@ -162,51 +161,58 @@ class RemoteVideoMenu extends PureComponent<IProps> {
             _showDemote,
             _currentRoomId,
             participantId,
-            t
+            t,
         } = this.props;
         const buttonProps = {
             afterClick: this._onCancel,
             showLabel: true,
             participantID: participantId,
-            styles: bottomSheetStyles.buttons
+            styles: bottomSheetStyles.buttons,
         };
 
         const connectionStatusButtonProps = {
             ...buttonProps,
-            afterClick: undefined
+            afterClick: undefined,
         };
 
         return (
-            <BottomSheet
-                renderHeader = { this._renderMenuHeader }
-                showSlidingView = { _isParticipantAvailable }>
-                {!_isParticipantSilent && <AskUnmuteButton { ...buttonProps } />}
-                { !_disableRemoteMute && <MuteButton { ...buttonProps } /> }
-                <MuteEveryoneElseButton { ...buttonProps } />
-                { _moderator && _raisedHand && <LowerHandButton { ...buttonProps } /> }
-                { !_disableRemoteMute && !_isParticipantSilent && <MuteVideoButton { ...buttonProps } /> }
+            <BottomSheet renderHeader={this._renderMenuHeader} showSlidingView={_isParticipantAvailable}>
+                <InteractionButton {...{ ...buttonProps, interactionName: "LIKE" }} />
+                <InteractionButton {...{ ...buttonProps, interactionName: "DISLIKE" }} />
+                <InteractionButton {...{ ...buttonProps, interactionName: "CHEER" }} />
+                <InteractionButton {...{ ...buttonProps, interactionName: "BOO" }} />
+                <Divider style={styles.divider as ViewStyle} />
+                {!_isParticipantSilent && <AskUnmuteButton {...buttonProps} />}
+                {!_disableRemoteMute && <MuteButton {...buttonProps} />}
+                <MuteEveryoneElseButton {...buttonProps} />
+                {_moderator && _raisedHand && <LowerHandButton {...buttonProps} />}
+                {!_disableRemoteMute && !_isParticipantSilent && <MuteVideoButton {...buttonProps} />}
                 {/* @ts-ignore */}
-                <Divider style = { styles.divider as ViewStyle } />
-                { !_disableKick && <KickButton { ...buttonProps } /> }
-                { !_disableGrantModerator && !_isBreakoutRoom && <GrantModeratorButton { ...buttonProps } /> }
-                <PinButton { ...buttonProps } />
-                { _showDemote && <DemoteToVisitorButton { ...buttonProps } /> }
-                { !_disablePrivateChat && <PrivateMessageButton { ...buttonProps } /> }
-                <ConnectionStatusButton { ...connectionStatusButtonProps } />
-                {_moderator && _rooms.length > 1 && <>
-                    {/* @ts-ignore */}
-                    <Divider style = { styles.divider as ViewStyle } />
-                    <View style = { styles.contextMenuItem as ViewStyle }>
-                        <Text style = { styles.contextMenuItemText as TextStyle }>
-                            {t('breakoutRooms.actions.sendToBreakoutRoom')}
-                        </Text>
-                    </View>
-                    {_rooms.map(room => _currentRoomId !== room.id && (<SendToBreakoutRoom
-                        key = { room.id }
-                        room = { room }
-                        { ...buttonProps } />))}
-                </>}
-                <VolumeSlider participantID = { participantId } />
+                <Divider style={styles.divider as ViewStyle} />
+                {!_disableKick && <KickButton {...buttonProps} />}
+                {!_disableGrantModerator && !_isBreakoutRoom && <GrantModeratorButton {...buttonProps} />}
+                <PinButton {...buttonProps} />
+                {_showDemote && <DemoteToVisitorButton {...buttonProps} />}
+                {!_disablePrivateChat && <PrivateMessageButton {...buttonProps} />}
+                <ConnectionStatusButton {...connectionStatusButtonProps} />
+                {_moderator && _rooms.length > 1 && (
+                    <>
+                        {/* @ts-ignore */}
+                        <Divider style={styles.divider as ViewStyle} />
+                        <View style={styles.contextMenuItem as ViewStyle}>
+                            <Text style={styles.contextMenuItemText as TextStyle}>
+                                {t("breakoutRooms.actions.sendToBreakoutRoom")}
+                            </Text>
+                        </View>
+                        {_rooms.map(
+                            (room) =>
+                                _currentRoomId !== room.id && (
+                                    <SendToBreakoutRoom key={room.id} room={room} {...buttonProps} />
+                                )
+                        )}
+                    </>
+                )}
+                <VolumeSlider participantID={participantId} />
             </BottomSheet>
         );
     }
@@ -230,16 +236,9 @@ class RemoteVideoMenu extends PureComponent<IProps> {
         const { participantId } = this.props;
 
         return (
-            <View
-                style = { [
-                    bottomSheetStyles.sheet,
-                    styles.participantNameContainer ] as ViewStyle[] }>
-                <Avatar
-                    participantId = { participantId }
-                    size = { AVATAR_SIZE } />
-                <Text style = { styles.participantNameLabel as TextStyle }>
-                    { this.props._participantDisplayName }
-                </Text>
+            <View style={[bottomSheetStyles.sheet, styles.participantNameContainer] as ViewStyle[]}>
+                <Avatar participantId={participantId} size={AVATAR_SIZE} />
+                <Text style={styles.participantNameLabel as TextStyle}>{this.props._participantDisplayName}</Text>
             </View>
         );
     }
@@ -256,14 +255,14 @@ class RemoteVideoMenu extends PureComponent<IProps> {
 function _mapStateToProps(state: IReduxState, ownProps: any) {
     const kickOutEnabled = getFeatureFlag(state, KICK_OUT_ENABLED, true);
     const { participantId } = ownProps;
-    const { remoteVideoMenu = {}, disableRemoteMute } = state['features/base/config'];
+    const { remoteVideoMenu = {}, disableRemoteMute } = state["features/base/config"];
     const participant = getParticipantById(state, participantId);
     const { disableKick, disablePrivateChat } = remoteVideoMenu;
     const _rooms = Object.values(getBreakoutRooms(state));
     const _currentRoomId = getCurrentRoomId(state);
     const shouldDisableKick = disableKick || !kickOutEnabled;
     const moderator = isLocalParticipantModerator(state);
-    const _iAmVisitor = state['features/visitors'].iAmVisitor;
+    const _iAmVisitor = state["features/visitors"].iAmVisitor;
     const _isBreakoutRoom = isInBreakoutRoom(state);
     const raisedHand = hasRaisedHand(participant);
 
@@ -279,7 +278,7 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _participantDisplayName: getParticipantDisplayName(state, participantId),
         _raisedHand: raisedHand,
         _rooms,
-        _showDemote: moderator
+        _showDemote: moderator,
     };
 }
 

@@ -84,6 +84,22 @@
     [self _onJitsiMeetViewDelegateEvent:@"CONFERENCE_TERMINATED" withData:data];
 }
 
+- (void)like:(NSDictionary *)data {
+  NSLog(@"%@%@", @"like: ", data[@"participantId"]);
+}
+
+- (void)dislike:(NSDictionary *)data {
+  NSLog(@"%@%@", @"dislike: ", data[@"participantId"]);
+}
+
+- (void)cheer:(NSDictionary *)data {
+  NSLog(@"%@%@", @"cheer: ", data[@"participantId"]);
+}
+
+- (void)boo:(NSDictionary *)data {
+  NSLog(@"%@%@", @"boo: ", data[@"participantId"]);
+}
+
 - (void)conferenceWillJoin:(NSDictionary *)data {
     [self _onJitsiMeetViewDelegateEvent:@"CONFERENCE_WILL_JOIN" withData:data];
 }

@@ -1,12 +1,11 @@
-import React from 'react';
-import { TouchableHighlight } from 'react-native';
+import React from "react";
+import { TouchableHighlight } from "react-native";
 
-import Icon from '../../../icons/components/Icon';
-import styles from '../../../react/components/native/styles';
-import { IIconButtonProps } from '../../../react/types';
-import { BUTTON_TYPES } from '../../constants.native';
-import BaseTheme from '../BaseTheme.native';
-
+import Icon from "../../../icons/components/Icon";
+import styles from "../../../react/components/native/styles";
+import { IIconButtonProps } from "../../../react/types";
+import { BUTTON_TYPES } from "../../constants.native";
+import BaseTheme from "../BaseTheme.native";
 
 const IconButton: React.FC<IIconButtonProps> = ({
     accessibilityLabel,
@@ -17,7 +16,7 @@ const IconButton: React.FC<IIconButtonProps> = ({
     src,
     style,
     tapColor,
-    type
+    type,
 }: IIconButtonProps) => {
     const { PRIMARY, SECONDARY, TERTIARY } = BUTTON_TYPES;
 
@@ -45,23 +44,18 @@ const IconButton: React.FC<IIconButtonProps> = ({
     if (disabled) {
         color = BaseTheme.palette.icon03;
         iconButtonContainerStyles = styles.iconButtonContainerDisabled;
-        underlayColor = 'transparent';
+        underlayColor = "transparent";
     }
 
     return (
         <TouchableHighlight
-            accessibilityLabel = { accessibilityLabel }
-            disabled = { disabled }
-            onPress = { onPress }
-            style = { [
-                iconButtonContainerStyles,
-                style
-            ] }
-            underlayColor = { underlayColor }>
-            <Icon
-                color = { color }
-                size = { 20 || size }
-                src = { src } />
+            accessibilityLabel={accessibilityLabel}
+            disabled={disabled}
+            onPress={onPress}
+            style={[iconButtonContainerStyles, style]}
+            underlayColor={underlayColor}
+        >
+            <Icon color={color} size={20 || size} src={src} />
         </TouchableHighlight>
     );
 };

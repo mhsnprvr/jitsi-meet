@@ -5,7 +5,7 @@
  *     type: NOTIFIED_TO_SPEAK
  * }
  */
-export const NOTIFIED_TO_SPEAK = 'NOTIFIED_TO_SPEAK';
+export const NOTIFIED_TO_SPEAK = "NOTIFIED_TO_SPEAK";
 
 /**
  * Create an action for when dominant speaker changes.
@@ -20,7 +20,7 @@ export const NOTIFIED_TO_SPEAK = 'NOTIFIED_TO_SPEAK';
  *     }
  * }
  */
-export const DOMINANT_SPEAKER_CHANGED = 'DOMINANT_SPEAKER_CHANGED';
+export const DOMINANT_SPEAKER_CHANGED = "DOMINANT_SPEAKER_CHANGED";
 
 /**
  * Create an action for granting moderator to a participant.
@@ -30,7 +30,7 @@ export const DOMINANT_SPEAKER_CHANGED = 'DOMINANT_SPEAKER_CHANGED';
  *     id: string
  * }
  */
-export const GRANT_MODERATOR = 'GRANT_MODERATOR';
+export const GRANT_MODERATOR = "GRANT_MODERATOR";
 
 /**
  * Create an action for removing a participant from the conference.
@@ -40,7 +40,7 @@ export const GRANT_MODERATOR = 'GRANT_MODERATOR';
  *     id: string
  * }
  */
-export const KICK_PARTICIPANT = 'KICK_PARTICIPANT';
+export const KICK_PARTICIPANT = "KICK_PARTICIPANT";
 
 /**
  * Create an action for muting a remote participant.
@@ -50,7 +50,7 @@ export const KICK_PARTICIPANT = 'KICK_PARTICIPANT';
  *     id: string
  * }
  */
-export const MUTE_REMOTE_PARTICIPANT = 'MUTE_REMOTE_PARTICIPANT';
+export const MUTE_REMOTE_PARTICIPANT = "MUTE_REMOTE_PARTICIPANT";
 
 /**
  * Action to signal that ID of participant has changed. This happens when
@@ -63,7 +63,7 @@ export const MUTE_REMOTE_PARTICIPANT = 'MUTE_REMOTE_PARTICIPANT';
  *     oldValue: string
  * }
  */
-export const PARTICIPANT_ID_CHANGED = 'PARTICIPANT_ID_CHANGED';
+export const PARTICIPANT_ID_CHANGED = "PARTICIPANT_ID_CHANGED";
 
 /**
  * Action to signal that participant role has changed. e.
@@ -76,7 +76,7 @@ export const PARTICIPANT_ID_CHANGED = 'PARTICIPANT_ID_CHANGED';
  *     role: string
  * }
  */
-export const PARTICIPANT_ROLE_CHANGED = 'PARTICIPANT_ROLE_CHANGED';
+export const PARTICIPANT_ROLE_CHANGED = "PARTICIPANT_ROLE_CHANGED";
 
 /**
  * Action to signal that a participant has joined.
@@ -86,7 +86,20 @@ export const PARTICIPANT_ROLE_CHANGED = 'PARTICIPANT_ROLE_CHANGED';
  *     participant: Participant
  * }
  */
-export const PARTICIPANT_JOINED = 'PARTICIPANT_JOINED';
+export const PARTICIPANT_JOINED = "PARTICIPANT_JOINED";
+
+/**
+ * Action to signal that a participant is liked.
+ *
+ * {
+ *     type: LIKE,
+ *     participant: Participant
+ * }
+ */
+export const LIKE = "LIKE";
+export const DISLIKE = "DISLIKE";
+export const CHEER = "CHEER";
+export const BOO = "BOO";
 
 /**
  * Action to signal that a participant has been removed from a conference by
@@ -98,7 +111,7 @@ export const PARTICIPANT_JOINED = 'PARTICIPANT_JOINED';
  *     kicker: Object
  * }
  */
-export const PARTICIPANT_KICKED = 'PARTICIPANT_KICKED';
+export const PARTICIPANT_KICKED = "PARTICIPANT_KICKED";
 
 /**
  * Action to handle case when participant lefts.
@@ -110,7 +123,7 @@ export const PARTICIPANT_KICKED = 'PARTICIPANT_KICKED';
  *     }
  * }
  */
-export const PARTICIPANT_LEFT = 'PARTICIPANT_LEFT';
+export const PARTICIPANT_LEFT = "PARTICIPANT_LEFT";
 
 /**
  * Action to handle case when the sources attached to a participant are updated.
@@ -122,7 +135,7 @@ export const PARTICIPANT_LEFT = 'PARTICIPANT_LEFT';
  *      }
  * }
  */
-export const PARTICIPANT_SOURCES_UPDATED = 'PARTICIPANT_SOURCES_UPDATED';
+export const PARTICIPANT_SOURCES_UPDATED = "PARTICIPANT_SOURCES_UPDATED";
 
 /**
  * Action to handle case when info about participant changes.
@@ -132,7 +145,7 @@ export const PARTICIPANT_SOURCES_UPDATED = 'PARTICIPANT_SOURCES_UPDATED';
  *     participant: Participant
  * }
  */
-export const PARTICIPANT_UPDATED = 'PARTICIPANT_UPDATED';
+export const PARTICIPANT_UPDATED = "PARTICIPANT_UPDATED";
 
 /**
  * The type of the Redux action which pins a conference participant.
@@ -144,7 +157,7 @@ export const PARTICIPANT_UPDATED = 'PARTICIPANT_UPDATED';
  *     }
  * }
  */
-export const PIN_PARTICIPANT = 'PIN_PARTICIPANT';
+export const PIN_PARTICIPANT = "PIN_PARTICIPANT";
 
 /**
  * Action to signal that a hidden participant has joined.
@@ -154,7 +167,7 @@ export const PIN_PARTICIPANT = 'PIN_PARTICIPANT';
  *     participant: Participant
  * }
  */
-export const HIDDEN_PARTICIPANT_JOINED = 'HIDDEN_PARTICIPANT_JOINED';
+export const HIDDEN_PARTICIPANT_JOINED = "HIDDEN_PARTICIPANT_JOINED";
 
 /**
  * Action to handle case when hidden participant leaves.
@@ -166,7 +179,7 @@ export const HIDDEN_PARTICIPANT_JOINED = 'HIDDEN_PARTICIPANT_JOINED';
  *     }
  * }
  */
-export const HIDDEN_PARTICIPANT_LEFT = 'HIDDEN_PARTICIPANT_LEFT';
+export const HIDDEN_PARTICIPANT_LEFT = "HIDDEN_PARTICIPANT_LEFT";
 
 /**
  * The type of Redux action which notifies the app that the loadable avatar URL has changed.
@@ -179,7 +192,7 @@ export const HIDDEN_PARTICIPANT_LEFT = 'HIDDEN_PARTICIPANT_LEFT';
  *     }
  * }
  */
-export const SET_LOADABLE_AVATAR_URL = 'SET_LOADABLE_AVATAR_URL';
+export const SET_LOADABLE_AVATAR_URL = "SET_LOADABLE_AVATAR_URL";
 
 /**
  * The type of Redux action which notifies that the screenshare participant's display name has changed.
@@ -190,7 +203,7 @@ export const SET_LOADABLE_AVATAR_URL = 'SET_LOADABLE_AVATAR_URL';
  *     name: string
  * }
  */
- export const SCREENSHARE_PARTICIPANT_NAME_CHANGED = 'SCREENSHARE_PARTICIPANT_NAME_CHANGED';
+export const SCREENSHARE_PARTICIPANT_NAME_CHANGED = "SCREENSHARE_PARTICIPANT_NAME_CHANGED";
 
 /**
  * Raises hand for the local participant.
@@ -198,7 +211,7 @@ export const SET_LOADABLE_AVATAR_URL = 'SET_LOADABLE_AVATAR_URL';
  *     type: LOCAL_PARTICIPANT_RAISE_HAND
  * }
  */
-export const LOCAL_PARTICIPANT_RAISE_HAND = 'LOCAL_PARTICIPANT_RAISE_HAND';
+export const LOCAL_PARTICIPANT_RAISE_HAND = "LOCAL_PARTICIPANT_RAISE_HAND";
 
 /**
  * Clear the raise hand queue.
@@ -206,7 +219,7 @@ export const LOCAL_PARTICIPANT_RAISE_HAND = 'LOCAL_PARTICIPANT_RAISE_HAND';
  *     type: RAISE_HAND_CLEAR
  * }
  */
-export const RAISE_HAND_CLEAR = 'RAISE_HAND_CLEAR';
+export const RAISE_HAND_CLEAR = "RAISE_HAND_CLEAR";
 
 /**
  * Updates participant in raise hand queue.
@@ -218,7 +231,7 @@ export const RAISE_HAND_CLEAR = 'RAISE_HAND_CLEAR';
  *     }
  * }
  */
-export const RAISE_HAND_UPDATED = 'RAISE_HAND_UPDATED';
+export const RAISE_HAND_UPDATED = "RAISE_HAND_UPDATED";
 
 /**
  * The type of Redux action which notifies that the local participant has changed the audio levels.
@@ -227,7 +240,7 @@ export const RAISE_HAND_UPDATED = 'RAISE_HAND_UPDATED';
  *     level: number
  * }
  */
-export const LOCAL_PARTICIPANT_AUDIO_LEVEL_CHANGED = 'LOCAL_PARTICIPANT_AUDIO_LEVEL_CHANGED'
+export const LOCAL_PARTICIPANT_AUDIO_LEVEL_CHANGED = "LOCAL_PARTICIPANT_AUDIO_LEVEL_CHANGED";
 
 /**
  * The type of Redux action which overwrites the name of a participant.
@@ -237,7 +250,7 @@ export const LOCAL_PARTICIPANT_AUDIO_LEVEL_CHANGED = 'LOCAL_PARTICIPANT_AUDIO_LE
  *     name: string
  * }
  */
-export const OVERWRITE_PARTICIPANT_NAME = 'OVERWRITE_PARTICIPANT_NAME';
+export const OVERWRITE_PARTICIPANT_NAME = "OVERWRITE_PARTICIPANT_NAME";
 
 /**
  * The type of Redux action which overwrites the names of multiple participants.
@@ -246,7 +259,7 @@ export const OVERWRITE_PARTICIPANT_NAME = 'OVERWRITE_PARTICIPANT_NAME';
  *     participantsList: Array<Object>,
  * }
  */
-export const OVERWRITE_PARTICIPANTS_NAMES = 'OVERWRITE_PARTICIPANTS_NAMES';
+export const OVERWRITE_PARTICIPANTS_NAMES = "OVERWRITE_PARTICIPANTS_NAMES";
 
 /**
  * Updates participants local recording status.
@@ -256,4 +269,4 @@ export const OVERWRITE_PARTICIPANTS_NAMES = 'OVERWRITE_PARTICIPANTS_NAMES';
  *     onlySelf: boolean
  * }
  */
-export const SET_LOCAL_PARTICIPANT_RECORDING_STATUS = 'SET_LOCAL_PARTICIPANT_RECORDING_STATUS';
+export const SET_LOCAL_PARTICIPANT_RECORDING_STATUS = "SET_LOCAL_PARTICIPANT_RECORDING_STATUS";

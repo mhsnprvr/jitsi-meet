@@ -31,6 +31,8 @@ public class JitsiMeetUserInfo {
      */
     private String displayName;
 
+    private String id;
+
     /**
      * User's email address.
      */
@@ -52,6 +54,10 @@ public class JitsiMeetUserInfo {
 
         if (b.containsKey("email")) {
             email = b.getString("email");
+        }
+
+        if(b.containsKey("id")) {
+            id = b.getString("id");
         }
 
         if (b.containsKey("avatarURL")) {
@@ -79,6 +85,14 @@ public class JitsiMeetUserInfo {
         this.email = email;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
     public URL getAvatar() {
         return avatar;
     }
@@ -96,6 +110,10 @@ public class JitsiMeetUserInfo {
 
         if (email != null) {
             b.putString("email", email);
+        }
+
+        if (id != null) {
+            b.putString("id", id);
         }
 
         if (avatar != null) {
