@@ -251,7 +251,7 @@ function _requestingSubtitlesChange(
 
     if (enabled && conference?.getTranscriptionStatus() === JitsiMeetJS.constants.transcriptionStatus.OFF) {
         const isModerator = isLocalParticipantModerator(state);
-        const featureAllowed = isJwtFeatureEnabled(getState(), 'transcription', isModerator, isModerator);
+        const featureAllowed = isJwtFeatureEnabled(getState(), 'transcription', isModerator, false);
 
         if (featureAllowed) {
             conference?.dial(TRANSCRIBER_DIAL_NUMBER)
@@ -259,7 +259,7 @@ function _requestingSubtitlesChange(
                     logger.error('Error dialing', e);
 
                     // let's back to the correct state
-                    dispatch(setRequestingSubtitles(false, false));
+                    dispatch(setRequestingSubtitles(false, false, null));
                 });
         }
     }

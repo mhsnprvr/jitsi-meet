@@ -140,7 +140,6 @@ import { openLeaveReasonDialog } from './react/features/conference/actions.web';
 import { showDesktopPicker } from './react/features/desktop-picker/actions';
 import { appendSuffix } from './react/features/display-name/functions';
 import { maybeOpenFeedbackDialog, submitFeedback } from './react/features/feedback/actions';
-import { initKeyboardShortcuts } from './react/features/keyboard-shortcuts/actions';
 import { maybeSetLobbyChatMessageListener } from './react/features/lobby/actions.any';
 import { setNoiseSuppressionEnabled } from './react/features/noise-suppression/actions';
 import {
@@ -164,6 +163,7 @@ import { toggleScreenshotCaptureSummary } from './react/features/screenshot-capt
 import { AudioMixerEffect } from './react/features/stream-effects/audio-mixer/AudioMixerEffect';
 import { createRnnoiseProcessor } from './react/features/stream-effects/rnnoise';
 import { handleToggleVideoMuted } from './react/features/toolbox/actions.any';
+import { transcriberJoined, transcriberLeft } from './react/features/transcribing/actions';
 import { muteLocal } from './react/features/video-menu/actions.any';
 
 const logger = Logger.getLogger(__filename);
@@ -1685,6 +1685,16 @@ export default {
         );
 
         room.on(
+            JitsiConferenceEvents.TRANSCRIPTION_STATUS_CHANGED,
+            (status, id, abruptly) => {
+                if (status === JitsiMeetJS.constants.transcriptionStatus.ON) {
+                    APP.store.dispatch(transcriberJoined(id));
+                } else if (status === JitsiMeetJS.constants.transcriptionStatus.OFF) {
+                    APP.store.dispatch(transcriberLeft(id, abruptly));
+                }
+            });
+
+        room.on(
             JitsiConferenceEvents.ENDPOINT_MESSAGE_RECEIVED,
             (participant, data) => {
                 APP.store.dispatch(endpointMessageReceived(participant, data));
@@ -2005,7 +2015,6 @@ export default {
 
         APP.UI.initConference();
 
-        dispatch(initKeyboardShortcuts());
         dispatch(conferenceJoined(room));
 
         const jwt = APP.store.getState()['features/base/jwt'];
