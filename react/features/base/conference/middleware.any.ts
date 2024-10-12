@@ -68,6 +68,7 @@ import {
 } from './functions';
 import logger from './logger';
 import { IConferenceMetadata } from './reducer';
+import { enterPictureInPicture } from '../../mobile/picture-in-picture/actions';
 
 /**
  * Handler for before unload event.
@@ -291,6 +292,7 @@ function _conferenceJoined({ dispatch, getState }: IStore, next: Function, actio
     } = getState()['features/base/config'];
 
     dispatch(removeLobbyChatParticipant(true));
+    dispatch(enterPictureInPicture())
 
     pendingSubjectChange && dispatch(setSubject(pendingSubjectChange));
 
