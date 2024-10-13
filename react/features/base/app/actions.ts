@@ -24,6 +24,7 @@ export function appWillMount(app: Object) {
         // following. Which is not extremely bad because we haven't moved the
         // API module into its own feature yet so we're bound to work on that in
         // the future.
+        // @ts-ignore
         typeof APP === 'object' && APP.API.init();
 
         dispatch({

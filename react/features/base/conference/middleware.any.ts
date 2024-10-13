@@ -11,7 +11,7 @@ import {
     createPinnedEvent
 } from '../../analytics/AnalyticsEvents';
 import { sendAnalytics } from '../../analytics/functions';
-import { reloadNow } from '../../app/actions';
+import { reloadNow } from '../../app/actions.native';
 import { IStore } from '../../app/types';
 import { removeLobbyChatParticipant } from '../../chat/actions.any';
 import { openDisplayNamePrompt } from '../../display-name/actions';
@@ -20,11 +20,11 @@ import { showErrorNotification } from '../../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE } from '../../notifications/constants';
 import { hasDisplayName } from '../../prejoin/utils';
 import { stopLocalVideoRecording } from '../../recording/actions.any';
-import LocalRecordingManager from '../../recording/components/Recording/LocalRecordingManager';
+import LocalRecordingManager from '../../recording/components/Recording/LocalRecordingManager.native';
 import { iAmVisitor } from '../../visitors/functions';
 import { overwriteConfig } from '../config/actions';
 import { CONNECTION_ESTABLISHED, CONNECTION_FAILED } from '../connection/actionTypes';
-import { connectionDisconnected, disconnect } from '../connection/actions';
+import { connectionDisconnected, disconnect } from '../connection/actions.native';
 import { validateJwt } from '../jwt/functions';
 import { JitsiConferenceErrors, JitsiConferenceEvents, JitsiConnectionErrors } from '../lib-jitsi-meet';
 import { PARTICIPANT_UPDATED, PIN_PARTICIPANT } from '../participants/actionTypes';
@@ -57,7 +57,7 @@ import {
     setLocalSubject,
     setSubject,
     updateConferenceMetadata
-} from './actions';
+} from './actions.native';
 import { CONFERENCE_LEAVE_REASONS } from './constants';
 import {
     _addLocalTracksToConference,
@@ -257,6 +257,7 @@ function _conferenceFailed({ dispatch, getState }: IStore, next: Function, actio
     // FIXME: Workaround for the web version. Currently, the creation of the
     // conference is handled by /conference.js and appropriate failure handlers
     // are set there.
+    // @ts-ignore
     if (typeof APP !== 'undefined') {
         _removeUnloadHandler(getState);
     }
@@ -364,6 +365,7 @@ async function _connectionEstablished({ dispatch, getState }: IStore, next: Func
 
     // FIXME: Workaround for the web version. Currently, the creation of the
     // conference is handled by /conference.js.
+    // @ts-ignore
     if (typeof APP === 'undefined') {
         dispatch(createConference());
 
@@ -480,7 +482,7 @@ function _conferenceSubjectChanged({ dispatch, getState }: IStore, next: Functio
             subject: undefined
         });
     }
-
+// @ts-ignore
     typeof APP === 'object' && APP.API.notifySubjectChanged(subject);
 
     return result;
@@ -729,8 +731,9 @@ function _updateLocalParticipantInConference({ dispatch, getState }: IStore, nex
  */
 function _p2pStatusChanged(next: Function, action: AnyAction) {
     const result = next(action);
-
+// @ts-ignore  
     if (typeof APP !== 'undefined') {
+// @ts-ignore  
         APP.API.notifyP2pStatusChanged(action.p2p);
     }
 
