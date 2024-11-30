@@ -1,3 +1,5 @@
+import extraInterfaceConfigWhitelistCopy from './extraInterfaceConfigWhitelist';
+
 /**
  * The interface config keys to whitelist, the keys that can be overridden.
  *
@@ -32,7 +34,6 @@ export default [
     'INDICATOR_FONT_SIZES',
     'INITIAL_TOOLBAR_TIMEOUT',
     'LANG_DETECTION',
-    'LIVE_STREAMING_HELP_LINK',
     'LOCAL_THUMBNAIL_RATIO',
     'MAXIMUM_ZOOMING_COEFFICIENT',
     'NATIVE_APP_NAME',
@@ -45,7 +46,6 @@ export default [
     'SHARING_FEATURES',
     'SHOW_CHROME_EXTENSION_BANNER',
     'SHOW_POWERED_BY',
-    'SUPPORT_URL',
     'TILE_VIEW_MAX_COLUMNS',
     'TOOLBAR_ALWAYS_VISIBLE',
     'TOOLBAR_BUTTONS',
@@ -54,4 +54,4 @@ export default [
     'VERTICAL_FILMSTRIP',
     'VIDEO_LAYOUT_FIT',
     'VIDEO_QUALITY_LABEL_DISABLED'
-];
+].concat(extraInterfaceConfigWhitelistCopy);

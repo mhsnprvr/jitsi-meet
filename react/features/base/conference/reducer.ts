@@ -8,7 +8,7 @@ import { IConfig } from '../config/configType';
 import { CONNECTION_WILL_CONNECT, SET_LOCATION_URL } from '../connection/actionTypes';
 import { JitsiConferenceErrors } from '../lib-jitsi-meet';
 import ReducerRegistry from '../redux/ReducerRegistry';
-import { assign, set } from '../redux/functions';
+import { assign, equals, set } from '../redux/functions';
 
 import {
     AUTH_STATUS_CHANGED,
@@ -16,6 +16,7 @@ import {
     CONFERENCE_JOINED,
     CONFERENCE_LEFT,
     CONFERENCE_LOCAL_SUBJECT_CHANGED,
+    CONFERENCE_PROPERTIES_CHANGED,
     CONFERENCE_SUBJECT_CHANGED,
     CONFERENCE_TIMESTAMP_CHANGED,
     CONFERENCE_WILL_JOIN,
@@ -48,7 +49,8 @@ const DEFAULT_STATE = {
     membersOnly: undefined,
     metadata: undefined,
     password: undefined,
-    passwordRequired: undefined
+    passwordRequired: undefined,
+    properties: undefined
 };
 
 export interface IConferenceMetadata {
@@ -145,6 +147,7 @@ export interface IJitsiConference {
     setSenderVideoConstraint: Function;
     setStartMutedPolicy: Function;
     setSubject: Function;
+    setTranscriptionLanguage: Function;
     startRecording: Function;
     startVerification: Function;
     stopRecording: Function;
@@ -165,6 +168,7 @@ export interface IConferenceState {
     followMeRecorderEnabled?: boolean;
     joining?: IJitsiConference;
     leaving?: IJitsiConference;
+    lobbyError?: boolean;
     lobbyWaitingForHost?: boolean;
     localSubject?: string;
     locked?: string;
@@ -176,6 +180,7 @@ export interface IConferenceState {
     password?: string;
     passwordRequired?: IJitsiConference;
     pendingSubjectChange?: string;
+    properties?: object;
     room?: string;
     startAudioMutedPolicy?: boolean;
     startReactionsMuted?: boolean;
@@ -219,6 +224,9 @@ ReducerRegistry.register<IConferenceState>('features/base/conference',
 
         case CONFERENCE_LOCAL_SUBJECT_CHANGED:
             return set(state, 'localSubject', action.localSubject);
+
+        case CONFERENCE_PROPERTIES_CHANGED:
+            return _conferencePropertiesChanged(state, action);
 
         case CONFERENCE_TIMESTAMP_CHANGED:
             return set(state, 'conferenceTimestamp', action.conferenceTimestamp);
@@ -363,13 +371,24 @@ function _conferenceFailed(state: IConferenceState, { conference, error }: {
     let membersOnly;
     let passwordRequired;
     let lobbyWaitingForHost;
+    let lobbyError;
 
     switch (error.name) {
     case JitsiConferenceErrors.AUTHENTICATION_REQUIRED:
         authRequired = conference;
         break;
 
+    /**
+     * Access denied while waiting in the lobby.
+     * A conference error when we tried to join into a room with no display name when lobby is enabled in the room.
+     */
     case JitsiConferenceErrors.CONFERENCE_ACCESS_DENIED:
+    case JitsiConferenceErrors.DISPLAY_NAME_REQUIRED: {
+        lobbyError = true;
+
+        break;
+    }
+
     case JitsiConferenceErrors.MEMBERS_ONLY_ERROR: {
         membersOnly = conference;
 
@@ -393,6 +412,7 @@ function _conferenceFailed(state: IConferenceState, { conference, error }: {
         error,
         joining: undefined,
         leaving: undefined,
+        lobbyError,
         lobbyWaitingForHost,
 
         /**
@@ -450,6 +470,7 @@ function _conferenceJoined(state: IConferenceState, { conference }: { conference
         membersOnly: undefined,
         leaving: undefined,
 
+        lobbyError: undefined,
         lobbyWaitingForHost: undefined,
 
         /**
@@ -516,6 +537,26 @@ function _conferenceLeftOrWillLeave(state: IConferenceState, { conference, type 
     }
 
     return nextState;
+}
+
+/**
+ * Reduces a specific Redux action CONFERENCE_PROPERTIES_CHANGED of the feature
+ * base/conference.
+ *
+ * @param {Object} state - The Redux state of the feature base/conference.
+ * @param {Action} action - The Redux action CONFERENCE_PROPERTIES_CHANGED to reduce.
+ * @private
+ * @returns {Object} The new state of the feature base/conference after the
+ * reduction of the specified action.
+ */
+function _conferencePropertiesChanged(state: IConferenceState, { properties }: { properties: Object; }) {
+    if (!equals(state.properties, properties)) {
+        return assign(state, {
+            properties
+        });
+    }
+
+    return state;
 }
 
 /**

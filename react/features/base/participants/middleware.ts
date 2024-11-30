@@ -464,17 +464,15 @@ StateListenerRegistry.register(
                         })
                     ),
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                "features_screen-sharing": (participant: IJitsiParticipant, value: string) =>
-                    store.dispatch(
-                        participantUpdated({
-                            conference,
-                            id: participant.getId(),
-                            features: { "screen-sharing": true },
-                        })
-                    ),
-                localRecording: (participant: IJitsiParticipant, value: string) =>
-                    _localRecordingUpdated(store, conference, participant.getId(), value),
-                raisedHand: (participant: IJitsiParticipant, value: string) =>
+                'features_screen-sharing': (participant: IJitsiParticipant, value: string) =>
+                    store.dispatch(participantUpdated({
+                        conference,
+                        id: participant.getId(),
+                        features: { 'screen-sharing': true }
+                    })),
+                'localRecording': (participant: IJitsiParticipant, value: string) =>
+                    _localRecordingUpdated(store, conference, participant.getId(), Boolean(value)),
+                'raisedHand': (participant: IJitsiParticipant, value: string) =>
                     _raiseHandUpdated(store, conference, participant.getId(), value),
                 region: (participant: IJitsiParticipant, value: string) =>
                     store.dispatch(
@@ -743,7 +741,10 @@ function _localRecordingUpdated(
     participantId: string,
     newValue: string
 ) {
+function _localRecordingUpdated({ dispatch, getState }: IStore, conference: IJitsiConference,
+        participantId: string, newValue: boolean) {
     const state = getState();
+    const participant = getParticipantById(state, participantId);
 
     dispatch(
         participantUpdated({
@@ -752,6 +753,15 @@ function _localRecordingUpdated(
             localRecording: newValue,
         })
     );
+    if (participant?.localRecording === newValue) {
+        return;
+    }
+
+    dispatch(participantUpdated({
+        conference,
+        id: participantId,
+        localRecording: newValue
+    }));
     const participantName = getParticipantDisplayName(state, participantId);
 
     dispatch(
