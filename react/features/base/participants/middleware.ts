@@ -777,7 +777,7 @@ function _localRecordingUpdated({ dispatch, getState }: IStore, conference: IJit
     );
     dispatch(playSound(newValue ? RECORDING_ON_SOUND_ID : RECORDING_OFF_SOUND_ID));
 }
-
+}
 /**
  * Handles a raise hand status update.
  *
