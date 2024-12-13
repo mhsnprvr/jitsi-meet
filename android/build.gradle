@@ -43,13 +43,10 @@ ext {
 
     //React Native and Hermes Version
     rnVersion = "0.75.4"
-    hermesVersion = "0.75.4"
 }
 
 allprojects {
     repositories {
-        // Android JSC is installed from npm.
-        maven { url("$rootDir/../node_modules/jsc-android/dist") }
         mavenCentral()
         google()
         maven { url 'https://www.jitpack.io' }
