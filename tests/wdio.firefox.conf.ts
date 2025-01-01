@@ -1,5 +1,5 @@
 // wdio.firefox.conf.ts
-// extends te main configuration file changing first participant to be Firefox
+// extends the main configuration file changing first participant to be Firefox
 import { merge } from 'lodash-es';
 import process from 'node:process';
 
@@ -19,11 +19,13 @@ if (process.env.HEADLESS === 'true') {
     ffArgs.push('--headless');
 }
 
-export const config = merge(defaultConfig, {
-    exclude: [
-        'specs/2way/iFrameParticipantsPresence.spec.ts', // FF does not support uploading files (uploadFile)
-        'specs/3way/activeSpeaker.spec.ts' // FF does not support setting a file as mic input
-    ],
+const ffExcludes = [
+    'specs/2way/iFrameParticipantsPresence.spec.ts', // FF does not support uploading files (uploadFile)
+    'specs/3way/activeSpeaker.spec.ts' // FF does not support setting a file as mic input
+];
+
+const mergedConfig = merge(defaultConfig, {
+    ffExcludes,
     capabilities: {
         participant1: {
             capabilities: {
@@ -34,6 +36,36 @@ export const config = merge(defaultConfig, {
                 },
                 acceptInsecureCerts: process.env.ALLOW_INSECURE_CERTS === 'true'
             }
+        },
+        participant2: {
+            capabilities: {
+                'wdio:exclude': [
+                    ...defaultConfig.capabilities.participant2.capabilities['wdio:exclude'],
+                    ...ffExcludes
+                ]
+            }
+        },
+        participant3: {
+            capabilities: {
+                'wdio:exclude': [
+                    ...defaultConfig.capabilities.participant3.capabilities['wdio:exclude'],
+                    ...ffExcludes
+                ]
+            }
+        },
+        participant4: {
+            capabilities: {
+                'wdio:exclude': [
+                    ...defaultConfig.capabilities.participant4.capabilities['wdio:exclude'],
+                    ...ffExcludes
+                ]
+            }
         }
     }
 }, { clone: false });
+
+// Remove the chrome options from the first participant
+// @ts-ignore
+mergedConfig.capabilities.participant1.capabilities['goog:chromeOptions'] = undefined;
+
+export const config = mergedConfig;
