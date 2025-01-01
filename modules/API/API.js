@@ -115,7 +115,7 @@ import { toggleScreenshotCaptureSummary } from '../../react/features/screenshot-
 import { isScreenshotCaptureEnabled } from '../../react/features/screenshot-capture/functions';
 import SettingsDialog from '../../react/features/settings/components/web/SettingsDialog';
 import { SETTINGS_TABS } from '../../react/features/settings/constants';
-import { playSharedVideo, stopSharedVideo } from '../../react/features/shared-video/actions.any';
+import { playSharedVideo, stopSharedVideo } from '../../react/features/shared-video/actions';
 import { extractYoutubeIdOrURL } from '../../react/features/shared-video/functions';
 import { setRequestingSubtitles, toggleRequestingSubtitles } from '../../react/features/subtitles/actions';
 import { isAudioMuteButtonDisabled } from '../../react/features/toolbox/functions';
@@ -1571,8 +1571,8 @@ class API {
                 formattedArgument += `${arg.toString()}: ${arg.stack}`;
             } else if (typeof arg === 'object') {
                 // NOTE: The non-enumerable properties of the objects wouldn't be included in the string after
-                // JSON.strigify. For example Map instance will be translated to '{}'. So I think we have to eventually
-                // do something better for parsing the arguments. But since this option for strigify is part of the
+                // JSON.stringify. For example Map instance will be translated to '{}'. So I think we have to eventually
+                // do something better for parsing the arguments. But since this option for stringify is part of the
                 // public interface and I think it could be useful in some cases I will it for now.
                 try {
                     formattedArgument += JSON.stringify(arg);
