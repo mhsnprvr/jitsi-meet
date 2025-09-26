@@ -214,7 +214,7 @@ const ParticipantsPane = () => {
                 {showAddRoomButton && <AddBreakoutRoomButton />}
                 {showCurrentVisitorsList && <CurrentVisitorsList searchString = { searchString } />}
             </div>
-            {showFooter && (
+            {/* {showFooter && (
                 <div className = { classes.footer }>
                     {showMuteAllButton && (
                         <Button
@@ -238,7 +238,7 @@ const ParticipantsPane = () => {
                         </div>
                     )}
                 </div>
-            )}
+            )} */}
         </div>
     );
 };
