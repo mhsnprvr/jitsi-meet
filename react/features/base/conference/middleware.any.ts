@@ -76,6 +76,11 @@ import { IConferenceMetadata } from "./reducer";
 let beforeUnloadHandler: ((e?: any) => void) | undefined;
 
 /**
+ * A simple flag to avoid retrying more than once to join as a visitor when hitting max occupants reached.
+ */
+let retryAsVisitorOnMaxError = true;
+
+/**
  * Implements the middleware of the feature base/conference.
  *
  * @param {Store} store - The redux store.
@@ -204,18 +209,26 @@ function _conferenceFailed({ dispatch, getState }: IStore, next: Function, actio
             break;
         }
         case JitsiConferenceErrors.CONFERENCE_MAX_USERS: {
-            dispatch(
-                showErrorNotification({
-                    hideErrorSupportLink: true,
-                    descriptionKey: "dialog.maxUsersLimitReached",
-                    titleKey: "dialog.maxUsersLimitReachedTitle",
-                })
-            );
+            let retryAsVisitor = false;
+
+            if (error.params?.length && error.params[0]?.visitorsSupported) {
+                // visitors are supported, so let's try joining that way
+                retryAsVisitor = true;
+            }
+
+            if (!retryAsVisitor) {
+                dispatch(
+                    showErrorNotification({
+                        hideErrorSupportLink: true,
+                        descriptionKey: "dialog.maxUsersLimitReached",
+                        titleKey: "dialog.maxUsersLimitReachedTitle",
+                    })
+                );
+            }
 
             // In case of max users(it can be from a visitor node), let's restore
             // oldConfig if any as we will be back to the main prosody.
             const newConfig = restoreConferenceOptions(getState);
-
             if (newConfig) {
                 dispatch(overwriteConfig(newConfig));
                 dispatch(conferenceWillLeave(conference));
@@ -227,7 +240,6 @@ function _conferenceFailed({ dispatch, getState }: IStore, next: Function, actio
         }
         case JitsiConferenceErrors.NOT_ALLOWED_ERROR: {
             const [type, msg] = error.params;
-
             let descriptionKey;
             let titleKey = "dialog.tokenAuthFailed";
 
@@ -303,6 +315,8 @@ function _conferenceJoined({ dispatch, getState }: IStore, next: Function, actio
     const { conference } = action;
     const { pendingSubjectChange } = getState()["features/base/conference"];
     const { disableBeforeUnloadHandlers = false, requireDisplayName } = getState()["features/base/config"];
+
+    retryAsVisitorOnMaxError = true;
 
     dispatch(removeLobbyChatParticipant(true));
     dispatch(enterPictureInPicture());

@@ -280,7 +280,6 @@
         "Submit": "Submit",
         "Understand": "I understand, keep me muted for now",
         "UnderstandAndUnmute": "I understand, please unmute me",
-        "WaitForHostMsg": "The conference has not yet started because no moderators have yet arrived. If you'd like to become a moderator please log-in. Otherwise, please wait.",
         "WaitForHostNoAuthMsg": "The conference has not yet started because no moderators have yet arrived. Please wait.",
         "WaitingForHostButton": "Wait for moderator",
         "WaitingForHostTitle": "Waiting for a moderator…",
@@ -748,7 +747,8 @@
         "notificationTitle": "Lobby",
         "passwordJoinButton": "Join",
         "title": "Lobby",
-        "toggleLabel": "Enable lobby"
+        "toggleLabel": "Enable lobby",
+        "waitForModerator": "The conference has not yet started because no moderators have yet arrived. If you'd like to become a moderator please log-in. Otherwise, please wait."
     },
     "localRecording": {
         "clientState": {
@@ -964,6 +964,9 @@
         "by": "By {{ name }}",
         "closeButton": "Close poll",
         "create": {
+            "accessibilityLabel": {
+                "send": "Send poll"
+            },
             "addOption": "Add option",
             "answerPlaceholder": "Option {{index}}",
             "cancel": "Cancel",
@@ -972,8 +975,7 @@
             "pollQuestion": "Poll Question",
             "questionPlaceholder": "Ask a question",
             "removeOption": "Remove option",
-            "save": "Save",
-            "send": "Send"
+            "save": "Save"
         },
         "errors": {
             "notUniqueOption": "Options must be unique"
