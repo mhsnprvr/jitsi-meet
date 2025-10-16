@@ -1,10 +1,10 @@
-import { IJitsiConference } from '../conference/reducer';
+import { IJitsiConference } from "../conference/reducer";
 
 export enum FakeParticipant {
-    LocalScreenShare = 'LocalScreenShare',
-    RemoteScreenShare = 'RemoteScreenShare',
-    SharedVideo = 'SharedVideo',
-    Whiteboard = 'Whiteboard'
+    LocalScreenShare = "LocalScreenShare",
+    RemoteScreenShare = "RemoteScreenShare",
+    SharedVideo = "SharedVideo",
+    Whiteboard = "Whiteboard",
 }
 
 export interface IParticipant {
@@ -18,6 +18,8 @@ export interface IParticipant {
     e2eeVerificationAvailable?: boolean;
     e2eeVerified?: boolean;
     email?: string;
+    isCreator?: boolean;
+    isCoHost?: boolean;
     fakeParticipant?: FakeParticipant;
     features?: IParticipantFeatures;
     getId?: Function;
@@ -46,6 +48,7 @@ export interface IParticipant {
 export interface ILocalParticipant extends IParticipant {
     audioOutputDeviceId?: string;
     cameraDeviceId?: string;
+
     jwtId?: string;
     micDeviceId?: string;
     startWithAudioMuted?: boolean;
@@ -55,24 +58,24 @@ export interface ILocalParticipant extends IParticipant {
 }
 
 export interface IParticipantFeatures {
-    'branding'?: boolean | string;
-    'calendar'?: boolean | string;
-    'create-polls'?: boolean | string;
-    'file-upload'?: boolean | string;
-    'flip'?: boolean | string;
-    'inbound-call'?: boolean | string;
-    'list-visitors'?: boolean | string;
-    'livestreaming'?: boolean | string;
-    'lobby'?: boolean | string;
-    'moderation'?: boolean | string;
-    'outbound-call'?: boolean | string;
-    'recording'?: boolean | string;
-    'room'?: boolean | string;
-    'screen-sharing'?: boolean | string;
-    'send-groupchat'?: boolean | string;
-    'sip-inbound-call'?: boolean | string;
-    'sip-outbound-call'?: boolean | string;
-    'transcription'?: boolean | string;
+    branding?: boolean | string;
+    calendar?: boolean | string;
+    "create-polls"?: boolean | string;
+    "file-upload"?: boolean | string;
+    flip?: boolean | string;
+    "inbound-call"?: boolean | string;
+    "list-visitors"?: boolean | string;
+    livestreaming?: boolean | string;
+    lobby?: boolean | string;
+    moderation?: boolean | string;
+    "outbound-call"?: boolean | string;
+    recording?: boolean | string;
+    room?: boolean | string;
+    "screen-sharing"?: boolean | string;
+    "send-groupchat"?: boolean | string;
+    "sip-inbound-call"?: boolean | string;
+    "sip-outbound-call"?: boolean | string;
+    transcription?: boolean | string;
 }
 
 export interface ISourceInfo {

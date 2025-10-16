@@ -1,5 +1,5 @@
-import { IStateful } from '../base/app/types';
-import { toState } from '../base/redux/functions';
+import { IStateful } from "../base/app/types";
+import { toState } from "../base/redux/functions";
 
 /**
  * Tells whether or not the notifications should be displayed within
@@ -10,11 +10,10 @@ import { toState } from '../base/redux/functions';
  */
 export function shouldDisplayNotifications(stateful: IStateful) {
     const state = toState(stateful);
-    const { calleeInfoVisible } = state['features/invite'];
+    const { calleeInfoVisible } = state["features/invite"];
 
     return !calleeInfoVisible;
 }
-
 
 /**
  *
@@ -28,11 +27,18 @@ export function shouldDisplayNotifications(stateful: IStateful) {
 export function arePollsDisabled(stateful: IStateful) {
     const state = toState(stateful);
 
-    const { conference } = state['features/base/conference'];
+    const { conference } = state["features/base/conference"];
 
-    if (!conference?.getPolls()?.isSupported()) {
+    // Some custom builds or older lib-jitsi-meet versions may not expose
+    // the polls feature on the conference instance. Guard defensively to
+    // avoid runtime errors that can bounce the app back to the home page.
+    if (!conference || typeof (conference as any).getPolls !== "function") {
         return true;
     }
 
-    return state['features/base/config']?.disablePolls;
+    if (!(conference as any).getPolls()?.isSupported()) {
+        return true;
+    }
+
+    return state["features/base/config"]?.disablePolls;
 }

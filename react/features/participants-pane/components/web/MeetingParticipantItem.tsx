@@ -1,38 +1,39 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { connect } from 'react-redux';
+import React, { useCallback, useEffect, useState } from "react";
+import { connect, useSelector } from "react-redux";
 
-import { IReduxState } from '../../../app/types';
-import { JitsiTrackEvents } from '../../../base/lib-jitsi-meet';
-import { MEDIA_TYPE } from '../../../base/media/constants';
+import { IReduxState } from "../../../app/types";
+import { JitsiTrackEvents } from "../../../base/lib-jitsi-meet";
+import { MEDIA_TYPE } from "../../../base/media/constants";
 import {
     getLocalParticipant,
     getParticipantByIdOrUndefined,
     getParticipantDisplayName,
     hasRaisedHand,
-    isParticipantModerator
-} from '../../../base/participants/functions';
-import { IParticipant } from '../../../base/participants/types';
+    isLocalParticipantCoHost,
+    isLocalParticipantCreator,
+    isParticipantModerator,
+} from "../../../base/participants/functions";
+import { IParticipant } from "../../../base/participants/types";
 import {
     getLocalAudioTrack,
     getTrackByMediaTypeAndParticipant,
     isParticipantAudioMuted,
-    isParticipantVideoMuted
-} from '../../../base/tracks/functions.web';
-import { ITrack } from '../../../base/tracks/types';
-import { ACTION_TRIGGER, MEDIA_STATE, type MediaState } from '../../constants';
+    isParticipantVideoMuted,
+} from "../../../base/tracks/functions.web";
+import { ITrack } from "../../../base/tracks/types";
+import { ACTION_TRIGGER, MEDIA_STATE, type MediaState } from "../../constants";
 import {
     getParticipantAudioMediaState,
     getParticipantVideoMediaState,
     getQuickActionButtonType,
-    participantMatchesSearch
-} from '../../functions';
+    participantMatchesSearch,
+} from "../../functions";
 
-import ParticipantActionEllipsis from './ParticipantActionEllipsis';
-import ParticipantItem from './ParticipantItem';
-import ParticipantQuickAction from './ParticipantQuickAction';
+import ParticipantActionEllipsis from "./ParticipantActionEllipsis";
+import ParticipantItem from "./ParticipantItem";
+import ParticipantQuickAction from "./ParticipantQuickAction";
 
 interface IProps {
-
     /**
      * Media state for audio.
      */
@@ -188,15 +189,13 @@ function MeetingParticipantItem({
     openDrawerForParticipant,
     overflowDrawer,
     participantActionEllipsisLabel,
-    youText
+    youText,
 }: IProps) {
+    const [hasAudioLevels, setHasAudioLevel] = useState(false);
+    const [registeredEvent, setRegisteredEvent] = useState(false);
 
-    const [ hasAudioLevels, setHasAudioLevel ] = useState(false);
-    const [ registeredEvent, setRegisteredEvent ] = useState(false);
-
-    const _updateAudioLevel = useCallback(level => {
-        const audioLevel = typeof level === 'number' && !isNaN(level)
-            ? level : 0;
+    const _updateAudioLevel = useCallback((level) => {
+        const audioLevel = typeof level === "number" && !isNaN(level) ? level : 0;
 
         setHasAudioLevel(audioLevel > 0.009);
     }, []);
@@ -218,55 +217,65 @@ function MeetingParticipantItem({
                 jitsiTrack?.off(JitsiTrackEvents.TRACK_AUDIO_LEVEL_CHANGED, _updateAudioLevel);
             }
         };
-    }, [ _audioTrack ]);
+    }, [_audioTrack]);
 
     if (!_matchesSearch) {
         return null;
     }
 
-    const audioMediaState = _audioMediaState === MEDIA_STATE.UNMUTED && hasAudioLevels
-        ? MEDIA_STATE.DOMINANT_SPEAKER : _audioMediaState;
+    const audioMediaState =
+        _audioMediaState === MEDIA_STATE.UNMUTED && hasAudioLevels ? MEDIA_STATE.DOMINANT_SPEAKER : _audioMediaState;
+
+    const isCreator = useSelector(isLocalParticipantCreator);
+    const isCoHost = useSelector(isLocalParticipantCoHost);
+    const showQuickActions = isCreator || isCoHost;
+    console.log("showQuickActions,isCreator,isCoHost", showQuickActions, isCreator, isCoHost);
 
     return (
         <ParticipantItem
-            actionsTrigger = { ACTION_TRIGGER.HOVER }
-            {
-                ...(_participant?.fakeParticipant ? {} : {
-                    audioMediaState,
-                    videoMediaState: _videoMediaState
-                })
-            }
-            disableModeratorIndicator = { _disableModeratorIndicator }
-            displayName = { _displayName }
-            isHighlighted = { isHighlighted }
-            isModerator = { isParticipantModerator(_participant) }
-            local = { _local }
-            onLeave = { onLeave }
-            openDrawerForParticipant = { openDrawerForParticipant }
-            overflowDrawer = { overflowDrawer }
-            participantID = { _participantID }
-            raisedHand = { _raisedHand }
-            youText = { youText }>
-
-            {!overflowDrawer && !_participant?.fakeParticipant
-                && <>
-                    {!isInBreakoutRoom && (
+            actionsTrigger={ACTION_TRIGGER.HOVER}
+            {...(_participant?.fakeParticipant
+                ? {}
+                : {
+                      audioMediaState,
+                      videoMediaState: _videoMediaState,
+                  })}
+            disableModeratorIndicator={_disableModeratorIndicator}
+            displayName={_displayName}
+            isHighlighted={isHighlighted}
+            isModerator={isParticipantModerator(_participant)}
+            local={_local}
+            onLeave={onLeave}
+            openDrawerForParticipant={openDrawerForParticipant}
+            overflowDrawer={overflowDrawer}
+            participantID={_participantID}
+            raisedHand={_raisedHand}
+            youText={youText}
+        >
+            {!overflowDrawer && !_participant?.fakeParticipant && (
+                <>
+                    {!isInBreakoutRoom && showQuickActions ? (
                         <ParticipantQuickAction
-                            buttonType = { _quickActionButtonType }
-                            participantID = { _participantID }
-                            participantName = { _displayName } />
+                            buttonType={_quickActionButtonType}
+                            participantID={_participantID}
+                            participantName={_displayName}
+                        />
+                    ) : (
+                        <></>
                     )}
                     <ParticipantActionEllipsis
-                        accessibilityLabel = { participantActionEllipsisLabel }
-                        onClick = { onContextMenu }
-                        participantID = { _participantID } />
+                        accessibilityLabel={participantActionEllipsisLabel}
+                        onClick={onContextMenu}
+                        participantID={_participantID}
+                    />
                 </>
-            }
+            )}
 
-            {!overflowDrawer && (_localVideoOwner && _participant?.fakeParticipant) && (
+            {!overflowDrawer && _localVideoOwner && _participant?.fakeParticipant && (
                 <ParticipantActionEllipsis
-                    accessibilityLabel = { participantActionEllipsisLabel }
-                    onClick = { onContextMenu } />
+                    accessibilityLabel={participantActionEllipsisLabel}
+                    onClick={onContextMenu}
+                />
             )}
         </ParticipantItem>
     );
@@ -282,10 +291,10 @@ function MeetingParticipantItem({
  */
 function _mapStateToProps(state: IReduxState, ownProps: any) {
     const { participantID, searchString } = ownProps;
-    const { ownerId } = state['features/shared-video'];
+    const { ownerId } = state["features/shared-video"];
     const localParticipantId = getLocalParticipant(state)?.id;
     const participant = getParticipantByIdOrUndefined(state, participantID);
-    const _displayName = getParticipantDisplayName(state, participant?.id ?? '');
+    const _displayName = getParticipantDisplayName(state, participant?.id ?? "");
     const _matchesSearch = participantMatchesSearch(participant, searchString);
     const _isAudioMuted = isParticipantAudioMuted(participant, state);
     const _isVideoMuted = isParticipantVideoMuted(participant, state);
@@ -293,11 +302,13 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
     const _videoMediaState = getParticipantVideoMediaState(participant, _isVideoMuted, state);
     const _quickActionButtonType = getQuickActionButtonType(participant, state);
 
-    const tracks = state['features/base/tracks'];
-    const _audioTrack = participantID === localParticipantId
-        ? getLocalAudioTrack(tracks) : getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, participantID);
+    const tracks = state["features/base/tracks"];
+    const _audioTrack =
+        participantID === localParticipantId
+            ? getLocalAudioTrack(tracks)
+            : getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, participantID);
 
-    const { disableModeratorIndicator } = state['features/base/config'];
+    const { disableModeratorIndicator } = state["features/base/config"];
 
     return {
         _audioMediaState,
@@ -308,10 +319,10 @@ function _mapStateToProps(state: IReduxState, ownProps: any) {
         _localVideoOwner: Boolean(ownerId === localParticipantId),
         _matchesSearch,
         _participant: participant,
-        _participantID: participant?.id ?? '',
+        _participantID: participant?.id ?? "",
         _quickActionButtonType,
         _raisedHand: hasRaisedHand(participant),
-        _videoMediaState
+        _videoMediaState,
     };
 }
 

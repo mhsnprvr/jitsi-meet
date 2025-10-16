@@ -30,26 +30,43 @@ var config = {
 
     hosts: {
         // XMPP domain.
-        domain: 'jitsi-meet.example.com',
+        domain: 'meet.jitsi',
 
         // When using authentication, domain for guest users.
         // anonymousdomain: 'guest.example.com',
 
         // Domain for authenticated users. Defaults to <domain>.
-        // authdomain: 'jitsi-meet.example.com',
+        // authdomain: 'meet.jitsi',
 
         // Focus component domain. Defaults to focus.<domain>.
-        // focus: 'focus.jitsi-meet.example.com',
+        focus: 'focus.meet.jitsi',
 
         // XMPP MUC domain. FIXME: use XEP-0030 to discover it.
-        muc: 'conference.' + subdomain + 'jitsi-meet.example.com',
+        muc: 'muc.meet.jitsi',
     },
 
-    // BOSH URL. FIXME: use XEP-0156 to discover it.
-    bosh: 'https://jitsi-meet.example.com/' + subdir + 'http-bind',
+    // BOSH URL proxied by Nginx in the same container
+    bosh: '/http-bind',
 
-    // Websocket URL (XMPP)
-    websocket: 'wss://jitsi-meet.example.com/' + subdir + 'xmpp-websocket',
+    // Websocket URL (XMPP) proxied by Nginx in the same container
+    websocket: (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
+        + window.location.host + '/xmpp-websocket',
+
+    // Enable guest access
+    enableWelcomePage: true,
+    enableInsecureRoomNameWarning: false,
+
+    // Temporarily disable polls to avoid calling unavailable conference.getPolls
+    disablePolls: true,
+
+    // Debugging
+    debug: true,
+    debugLevel: 'debug',
+
+    // Disable P2P for testing
+    p2p: {
+        enabled: false
+    },
 
     // websocketKeepAliveUrl: 'https://jitsi-meet.example.com/' + subdir + '_unlock',
 
