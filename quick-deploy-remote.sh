@@ -21,11 +21,22 @@ echo ""
 
 echo "Creating and configuring .env file..."
 cp env.example .env
-sed -i '' "s|#HTTP_PORT=80|HTTP_PORT=8080|" .env
-sed -i '' "s|#HTTPS_PORT=443|HTTPS_PORT=8443|" .env
-sed -i '' "s|#PUBLIC_URL=https://meet.example.com:\${HTTPS_PORT}|PUBLIC_URL=http://localhost:8080|" .env
-sed -i '' "s|#DOCKER_HUB_UNAME=jitsi|DOCKER_HUB_UNAME=mowsen|" .env
-sed -i '' "s|#JITSI_IMAGE_VERSION=stable-9584|JITSI_IMAGE_VERSION=latest|" .env
+# Use different sed syntax for Linux vs macOS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    sed -i '' "s|#HTTP_PORT=80|HTTP_PORT=8080|" .env
+    sed -i '' "s|#HTTPS_PORT=443|HTTPS_PORT=8443|" .env
+    sed -i '' "s|#PUBLIC_URL=https://meet.example.com:\${HTTPS_PORT}|PUBLIC_URL=http://localhost:8080|" .env
+    sed -i '' "s|#DOCKER_HUB_UNAME=jitsi|DOCKER_HUB_UNAME=mowsen|" .env
+    sed -i '' "s|#JITSI_IMAGE_VERSION=stable-9584|JITSI_IMAGE_VERSION=latest|" .env
+else
+    # Linux
+    sed -i "s|#HTTP_PORT=80|HTTP_PORT=8080|" .env
+    sed -i "s|#HTTPS_PORT=443|HTTPS_PORT=8443|" .env
+    sed -i "s|#PUBLIC_URL=https://meet.example.com:\${HTTPS_PORT}|PUBLIC_URL=http://localhost:8080|" .env
+    sed -i "s|#DOCKER_HUB_UNAME=jitsi|DOCKER_HUB_UNAME=mowsen|" .env
+    sed -i "s|#JITSI_IMAGE_VERSION=stable-9584|JITSI_IMAGE_VERSION=latest|" .env
+fi
 echo ".env file configured."
 echo ""
 
@@ -35,9 +46,16 @@ echo "Passwords generated."
 echo ""
 
 echo "Modifying docker-compose.yml to use custom frontend image and expose Prosody port..."
-sed -i '' "s|image: jitsi/web:\${JITSI_IMAGE_VERSION:-unstable}|image: mowsen/jitsi-meet:\${JITSI_IMAGE_VERSION:-latest}|" docker-compose.yml
-# Ensure Prosody's 5280 port is exposed
-sed -i '' "/prosody:/!b;n;/expose:/!b;n;/5280/!b;s/expose:/ports:\n            - \"\${PROSODY_HTTP_PORT:-5280}:5280\"/" docker-compose.yml
+# Use different sed syntax for Linux vs macOS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    sed -i '' "s|image: jitsi/web:\${JITSI_IMAGE_VERSION:-unstable}|image: mowsen/jitsi-meet:\${JITSI_IMAGE_VERSION:-latest}|" docker-compose.yml
+    sed -i '' 's|expose:|ports:\n            - "${PROSODY_HTTP_PORT:-5280}:5280"|' docker-compose.yml
+else
+    # Linux
+    sed -i "s|image: jitsi/web:\${JITSI_IMAGE_VERSION:-unstable}|image: mowsen/jitsi-meet:\${JITSI_IMAGE_VERSION:-latest}|" docker-compose.yml
+    sed -i 's|expose:|ports:\n            - "${PROSODY_HTTP_PORT:-5280}:5280"|' docker-compose.yml
+fi
 echo "docker-compose.yml modified."
 echo ""
 
