@@ -1,6 +1,6 @@
-import { Component } from 'react';
+import { Component } from "react";
 
-import logger from '../logger';
+import logger from "../logger";
 
 /**
  * Describes audio element interface used in the base/media feature for audio
@@ -12,13 +12,13 @@ export type AudioElement = {
     play: () => void;
     setSinkId?: (id: string) => Promise<any>;
     stop: () => void;
+    volume?: number;
 };
 
 /**
  * {@code AbstractAudio} Component's property types.
  */
 export interface IProps {
-
     loop?: boolean;
 
     /**
@@ -37,6 +37,11 @@ export interface IProps {
      */
     src: any | string;
     stream?: Object;
+
+    /**
+     * Volume level for the audio element (0.0 to 1.0).
+     */
+    volume?: number;
 }
 
 /**
@@ -97,7 +102,7 @@ export default class AbstractAudio extends Component<IProps> {
 
         const { setRef } = this.props;
 
-        typeof setRef === 'function' && setRef(element ? this : null);
+        typeof setRef === "function" && setRef(element ? this : null);
     }
 
     /**
@@ -108,10 +113,9 @@ export default class AbstractAudio extends Component<IProps> {
      * @returns {void}
      */
     setSinkId(sinkId: string) {
-        this._audioElementImpl
-            && typeof this._audioElementImpl.setSinkId === 'function'
-            && this._audioElementImpl.setSinkId(sinkId)
-                .catch(error => logger.error('Error setting sink', error));
+        this._audioElementImpl &&
+            typeof this._audioElementImpl.setSinkId === "function" &&
+            this._audioElementImpl.setSinkId(sinkId).catch((error) => logger.error("Error setting sink", error));
     }
 
     /**
@@ -122,5 +126,18 @@ export default class AbstractAudio extends Component<IProps> {
      */
     stop() {
         this._audioElementImpl?.stop();
+    }
+
+    /**
+     * Sets the volume level for the audio element.
+     *
+     * @param {number} volume - Volume level (0.0 to 1.0).
+     * @public
+     * @returns {void}
+     */
+    setVolume(volume: number) {
+        if (this._audioElementImpl && typeof this._audioElementImpl.volume !== "undefined") {
+            this._audioElementImpl.volume = Math.max(0, Math.min(1, volume));
+        }
     }
 }

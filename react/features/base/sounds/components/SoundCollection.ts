@@ -60,7 +60,8 @@ class SoundCollection extends Component<IProps> {
                         key,
                         setRef: this._setRef.bind(this, soundId),
                         src,
-                        loop: options?.loop
+                        loop: options?.loop,
+                        volume: options?.volume || 0.5 // Default volume for reaction sounds
                     }));
             key += 1;
         }

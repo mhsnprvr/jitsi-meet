@@ -1,21 +1,15 @@
-import { AnyAction } from 'redux';
+import { AnyAction } from "redux";
 
-import { AudioElement } from '../media/components/AbstractAudio';
-import ReducerRegistry from '../redux/ReducerRegistry';
-import { assign } from '../redux/functions';
+import { AudioElement } from "../media/components/AbstractAudio";
+import ReducerRegistry from "../redux/ReducerRegistry";
+import { assign } from "../redux/functions";
 
-import {
-    REGISTER_SOUND,
-    UNREGISTER_SOUND,
-    _ADD_AUDIO_ELEMENT,
-    _REMOVE_AUDIO_ELEMENT
-} from './actionTypes';
+import { REGISTER_SOUND, UNREGISTER_SOUND, _ADD_AUDIO_ELEMENT, _REMOVE_AUDIO_ELEMENT } from "./actionTypes";
 
 /**
  * The structure use by this reducer to describe a sound.
  */
 export type Sound = {
-
     /**
      * The HTMLAudioElement which implements the audio playback functionality.
      * Becomes available once the sound resource gets loaded and the sound can
@@ -28,6 +22,7 @@ export type Sound = {
      */
     options?: {
         loop: boolean;
+        volume?: number;
     };
 
     /**
@@ -51,10 +46,8 @@ export type ISoundsState = Map<string, Sound>;
 /**
  * The base/sounds feature's reducer.
  */
-ReducerRegistry.register<ISoundsState>(
-    'features/base/sounds',
-    (state = DEFAULT_STATE, action): ISoundsState => {
-        switch (action.type) {
+ReducerRegistry.register<ISoundsState>("features/base/sounds", (state = DEFAULT_STATE, action): ISoundsState => {
+    switch (action.type) {
         case _ADD_AUDIO_ELEMENT:
         case _REMOVE_AUDIO_ELEMENT:
             return _addOrRemoveAudioElement(state, action);
@@ -67,8 +60,8 @@ ReducerRegistry.register<ISoundsState>(
 
         default:
             return state;
-        }
-    });
+    }
+});
 
 /**
  * Adds or removes {@link AudioElement} associated with a {@link Sound}.
@@ -88,15 +81,19 @@ function _addOrRemoveAudioElement(state: ISoundsState, action: AnyAction) {
 
     if (sound) {
         if (isAddAction) {
-            nextState.set(soundId,
+            nextState.set(
+                soundId,
                 assign(sound, {
-                    audioElement: action.audioElement
-                }));
+                    audioElement: action.audioElement,
+                })
+            );
         } else {
-            nextState.set(soundId,
+            nextState.set(
+                soundId,
                 assign(sound, {
-                    audioElement: undefined
-                }));
+                    audioElement: undefined,
+                })
+            );
         }
     }
 
@@ -119,7 +116,7 @@ function _registerSound(state: ISoundsState, action: AnyAction) {
 
     nextState.set(action.soundId, {
         src: action.src,
-        options: action.options
+        options: action.options,
     });
 
     return nextState;

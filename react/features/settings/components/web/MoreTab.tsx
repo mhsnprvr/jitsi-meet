@@ -1,22 +1,23 @@
-import { Theme } from '@mui/material';
-import clsx from 'clsx';
-import React from 'react';
-import { WithTranslation } from 'react-i18next';
-import { withStyles } from 'tss-react/mui';
+import { Theme } from "@mui/material";
+import clsx from "clsx";
+import React from "react";
+import { WithTranslation } from "react-i18next";
+import { withStyles } from "tss-react/mui";
 
 import AbstractDialogTab, {
-    IProps as AbstractDialogTabProps
-} from '../../../base/dialog/components/web/AbstractDialogTab';
-import { translate } from '../../../base/i18n/functions';
-import Checkbox from '../../../base/ui/components/web/Checkbox';
-import Select from '../../../base/ui/components/web/Select';
-import { MAX_ACTIVE_PARTICIPANTS } from '../../../filmstrip/constants';
+    IProps as AbstractDialogTabProps,
+} from "../../../base/dialog/components/web/AbstractDialogTab";
+import { translate } from "../../../base/i18n/functions";
+import Checkbox from "../../../base/ui/components/web/Checkbox";
+import Select from "../../../base/ui/components/web/Select";
+import { MAX_ACTIVE_PARTICIPANTS } from "../../../filmstrip/constants";
+
+import ReactionSoundVolumeSlider from "./ReactionSoundVolumeSlider";
 
 /**
  * The type of the React {@code Component} props of {@link MoreTab}.
  */
 export interface IProps extends AbstractDialogTabProps, WithTranslation {
-
     /**
      *  Indicates if closed captions are enabled.
      */
@@ -87,22 +88,22 @@ export interface IProps extends AbstractDialogTabProps, WithTranslation {
 const styles = (theme: Theme) => {
     return {
         container: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            padding: '0 2px'
+            display: "flex",
+            flexDirection: "column" as const,
+            padding: "0 2px",
         },
 
         divider: {
             margin: `${theme.spacing(4)} 0`,
-            width: '100%',
-            height: '1px',
+            width: "100%",
+            height: "1px",
             border: 0,
-            backgroundColor: theme.palette.ui03
+            backgroundColor: theme.palette.ui03,
         },
 
         checkbox: {
-            margin: `${theme.spacing(3)} 0`
-        }
+            margin: `${theme.spacing(3)} 0`,
+        },
     };
 };
 
@@ -143,29 +144,32 @@ class MoreTab extends AbstractDialogTab<IProps, any> {
             hideSelfView,
             showLanguageSettings,
             showSubtitlesOnStage,
-            t
+            t,
         } = this.props;
         const classes = withStyles.getClasses(this.props);
 
         return (
-            <div
-                className = { clsx('more-tab', classes.container) }
-                key = 'more'>
+            <div className={clsx("more-tab", classes.container)} key="more">
                 {this._renderMaxStageParticipantsSelect()}
                 {!disableHideSelfView && !iAmVisitor && (
                     <Checkbox
-                        checked = { hideSelfView }
-                        className = { classes.checkbox }
-                        label = { t('videothumbnail.hideSelfView') }
-                        name = 'hide-self-view'
-                        onChange = { this._onHideSelfViewChanged } />
+                        checked={hideSelfView}
+                        className={classes.checkbox}
+                        label={t("videothumbnail.hideSelfView")}
+                        name="hide-self-view"
+                        onChange={this._onHideSelfViewChanged}
+                    />
                 )}
-                {areClosedCaptionsEnabled && <Checkbox
-                    checked = { showSubtitlesOnStage }
-                    className = { classes.checkbox }
-                    label = { t('settings.showSubtitlesOnStage') }
-                    name = 'show-subtitles-button'
-                    onChange = { this._onShowSubtitlesOnStageChanged } /> }
+                {areClosedCaptionsEnabled && (
+                    <Checkbox
+                        checked={showSubtitlesOnStage}
+                        className={classes.checkbox}
+                        label={t("settings.showSubtitlesOnStage")}
+                        name="show-subtitles-button"
+                        onChange={this._onShowSubtitlesOnStageChanged}
+                    />
+                )}
+                <ReactionSoundVolumeSlider />
                 {showLanguageSettings && this._renderLanguageSelect()}
             </div>
         );
@@ -230,21 +234,23 @@ class MoreTab extends AbstractDialogTab<IProps, any> {
         if (!stageFilmstripEnabled) {
             return null;
         }
-        const maxParticipantsItems = Array(MAX_ACTIVE_PARTICIPANTS).fill(0)
+        const maxParticipantsItems = Array(MAX_ACTIVE_PARTICIPANTS)
+            .fill(0)
             .map((no, index) => {
                 return {
                     value: index + 1,
-                    label: `${index + 1}`
+                    label: `${index + 1}`,
                 };
             });
 
         return (
             <Select
-                id = 'more-maxStageParticipants-select'
-                label = { t('settings.maxStageParticipants') }
-                onChange = { this._onMaxStageParticipantsSelect }
-                options = { maxParticipantsItems }
-                value = { maxStageParticipants } />
+                id="more-maxStageParticipants-select"
+                label={t("settings.maxStageParticipants")}
+                onChange={this._onMaxStageParticipantsSelect}
+                options={maxParticipantsItems}
+                value={maxStageParticipants}
+            />
         );
     }
 
@@ -255,27 +261,23 @@ class MoreTab extends AbstractDialogTab<IProps, any> {
      * @returns {ReactElement}
      */
     _renderLanguageSelect() {
-        const {
-            currentLanguage,
-            languages,
-            t
-        } = this.props;
+        const { currentLanguage, languages, t } = this.props;
 
-        const languageItems
-            = languages.map((language: string) => {
-                return {
-                    value: language,
-                    label: t(`languages:${language}`)
-                };
-            });
+        const languageItems = languages.map((language: string) => {
+            return {
+                value: language,
+                label: t(`languages:${language}`),
+            };
+        });
 
         return (
             <Select
-                id = 'more-language-select'
-                label = { t('settings.language') }
-                onChange = { this._onLanguageItemSelect }
-                options = { languageItems }
-                value = { currentLanguage } />
+                id="more-language-select"
+                label={t("settings.language")}
+                onChange={this._onLanguageItemSelect}
+                options={languageItems}
+                value={currentLanguage}
+            />
         );
     }
 }

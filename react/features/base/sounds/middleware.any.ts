@@ -1,14 +1,14 @@
-import i18next from 'i18next';
+import i18next from "i18next";
 
-import { registerE2eeAudioFiles } from '../../../features/e2ee/functions';
-import { registerRecordingAudioFiles } from '../../../features/recording/functions';
-import { IStore } from '../../app/types';
-import { AudioSupportedLanguage } from '../media/constants';
-import MiddlewareRegistry from '../redux/MiddlewareRegistry';
-import StateListenerRegistry from '../redux/StateListenerRegistry';
+import { registerE2eeAudioFiles } from "../../../features/e2ee/functions";
+import { registerRecordingAudioFiles } from "../../../features/recording/functions";
+import { IStore } from "../../app/types";
+import { AudioSupportedLanguage } from "../media/constants";
+import MiddlewareRegistry from "../redux/MiddlewareRegistry";
+import StateListenerRegistry from "../redux/StateListenerRegistry";
 
-import { PLAY_SOUND, STOP_SOUND } from './actionTypes';
-import logger from './logger';
+import { PLAY_SOUND, STOP_SOUND } from "./actionTypes";
+import logger from "./logger";
 
 /**
  * Implements the entry point of the middleware of the feature base/sounds.
@@ -16,15 +16,14 @@ import logger from './logger';
  * @param {Store} store - The redux store.
  * @returns {Function}
  */
-MiddlewareRegistry.register(store => next => action => {
-
+MiddlewareRegistry.register((store) => (next) => (action) => {
     switch (action.type) {
-    case PLAY_SOUND:
-        _playSound(store, action.soundId);
-        break;
-    case STOP_SOUND:
-        _stopSound(store, action.soundId);
-        break;
+        case PLAY_SOUND:
+            _playSound(store, action.soundId);
+            break;
+        case STOP_SOUND:
+            _stopSound(store, action.soundId);
+            break;
     }
 
     return next(action);
@@ -39,11 +38,15 @@ MiddlewareRegistry.register(store => next => action => {
  * @returns {void}
  */
 function _playSound({ getState }: IStore, soundId: string) {
-    const sounds = getState()['features/base/sounds'];
+    const sounds = getState()["features/base/sounds"];
     const sound = sounds.get(soundId);
 
     if (sound) {
         if (sound.audioElement) {
+            // Apply volume from sound options if available
+            if (sound.options?.volume !== undefined && typeof sound.audioElement.volume !== "undefined") {
+                sound.audioElement.volume = sound.options.volume;
+            }
             sound.audioElement.play();
         } else {
             logger.warn(`PLAY_SOUND: sound not loaded yet for id: ${soundId}`);
@@ -62,7 +65,7 @@ function _playSound({ getState }: IStore, soundId: string) {
  * @returns {void}
  */
 function _stopSound({ getState }: IStore, soundId: string) {
-    const sounds = getState()['features/base/sounds'];
+    const sounds = getState()["features/base/sounds"];
     const sound = sounds.get(soundId);
 
     if (sound) {
@@ -100,17 +103,12 @@ function shouldReloadAudioFiles(language: string, prevLanguage: string): Boolean
     const isPrevLanguageSupported = isLanguageSupported(prevLanguage);
 
     return (
-
         // From an unsupported language (which defaulted to English) to a supported language (that isn't English).
-        isNextLanguageSupported && language !== AudioSupportedLanguage.en && !isPrevLanguageSupported
-    ) || (
-
+        (isNextLanguageSupported && language !== AudioSupportedLanguage.en && !isPrevLanguageSupported) ||
         // From a supported language (that wasn't English) to English.
-        !isNextLanguageSupported && isPrevLanguageSupported && prevLanguage !== AudioSupportedLanguage.en
-    ) || (
-
+        (!isNextLanguageSupported && isPrevLanguageSupported && prevLanguage !== AudioSupportedLanguage.en) ||
         // From a supported language to another.
-        isNextLanguageSupported && isPrevLanguageSupported
+        (isNextLanguageSupported && isPrevLanguageSupported)
     );
 }
 
@@ -120,7 +118,6 @@ function shouldReloadAudioFiles(language: string, prevLanguage: string): Boolean
 StateListenerRegistry.register(
     () => i18next.language,
     (language, { dispatch }, prevLanguage): void => {
-
         if (language !== prevLanguage && shouldReloadAudioFiles(language, prevLanguage)) {
             registerE2eeAudioFiles(dispatch, true);
             registerRecordingAudioFiles(dispatch, true);

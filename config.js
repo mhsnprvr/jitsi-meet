@@ -68,6 +68,9 @@ var config = {
         enabled: false
     },
 
+    // Reaction sounds volume (0.0 to 1.0, default: 0.2 for 20%)
+    soundsReactionsVolume: 0.2,
+
     // websocketKeepAliveUrl: 'https://jitsi-meet.example.com/' + subdir + '_unlock',
 
     // Whether BOSH should be preferred over WebSocket if both are configured.

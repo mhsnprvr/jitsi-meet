@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 
-import AbstractAudio, { IProps } from '../AbstractAudio';
+import AbstractAudio, { IProps } from "../AbstractAudio";
 
 /**
  * The React/Web {@link Component} which is similar to and wraps around
@@ -40,11 +40,12 @@ export default class Audio extends AbstractAudio {
     override render() {
         return (
             <audio
-                loop = { Boolean(this.props.loop) }
-                onCanPlayThrough = { this._onCanPlayThrough }
-                preload = 'auto'
-                ref = { this._setRef }
-                src = { this.props.src } />
+                loop={Boolean(this.props.loop)}
+                onCanPlayThrough={this._onCanPlayThrough}
+                preload="auto"
+                ref={this._setRef}
+                src={this.props.src}
+            />
         );
     }
 
@@ -97,6 +98,10 @@ export default class Audio extends AbstractAudio {
         this._ref = audioElement;
 
         if (audioElement) {
+            // Set volume if provided
+            if (typeof this.props.volume === "number") {
+                audioElement.volume = this.props.volume;
+            }
             this._maybeSetAudioElementImpl();
         } else {
             // AbstractAudioElement is supposed to trigger "removeAudio" only if
