@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jitsi Meet Iframe Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #meet { width: 800px; height: 600px; border: 1px solid #ccc; }
+        .status { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>Jitsi Meet Iframe Embedding Test</h1>
+    
+    <div id="status"></div>
+    
+    <h2>Test 1: Direct iframe embedding</h2>
+    <iframe id="meet" src="https://meet.avaxcoolyeti.com/test-room-123" allow="camera; microphone; display-capture"></iframe>
+    
+    <h2>Test 2: External API</h2>
+    <div id="api-test"></div>
+    
+    <script>
+        const statusDiv = document.getElementById('status');
+        
+        function addStatus(message, isError = false) {
+            const div = document.createElement('div');
+            div.className = isError ? 'status error' : 'status success';
+            div.textContent = message;
+            statusDiv.appendChild(div);
+            console.log(message);
+        }
+        
+        // Test 1: Check if iframe loads without X-Frame-Options error
+        const iframe = document.getElementById('meet');
+        iframe.onload = function() {
+            addStatus('✅ Iframe loaded successfully - no X-Frame-Options error!');
+        };
+        
+        iframe.onerror = function() {
+            addStatus('❌ Iframe failed to load - check console for X-Frame-Options error', true);
+        };
+        
+        // Test 2: External API
+        const script = document.createElement('script');
+        script.src = 'https://meet.avaxcoolyeti.com/external_api.js';
+        script.onload = function() {
+            addStatus('✅ External API script loaded successfully!');
+            
+            if (typeof JitsiMeetExternalAPI !== 'undefined') {
+                addStatus('✅ JitsiMeetExternalAPI class is available!');
+                
+                try {
+                    const api = new JitsiMeetExternalAPI('meet.avaxcoolyeti.com', {
+                        roomName: 'test-room-' + Math.random().toString(36).substr(2, 9),
+                        width: 400,
+                        height: 300,
+                        parentNode: document.getElementById('api-test')
+                    });
+                    addStatus('✅ External API instance created successfully!');
+                } catch (error) {
+                    addStatus('❌ Error creating External API instance: ' + error.message, true);
+                }
+            } else {
+                addStatus('❌ JitsiMeetExternalAPI class not found', true);
+            }
+        };
+        script.onerror = function() {
+            addStatus('❌ Failed to load external_api.js - check if file exists', true);
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>

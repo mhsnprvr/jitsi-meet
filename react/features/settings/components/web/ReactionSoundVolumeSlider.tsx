@@ -60,7 +60,7 @@ class ReactionSoundVolumeSlider extends Component<IProps> {
  * @returns {IProps}
  */
 function _mapStateToProps(state: IReduxState) {
-    const { soundsReactionsVolume = 0.5 } = state["features/base/settings"];
+    const { soundsReactionsVolume = 0.05 } = state["features/base/settings"];
 
     return {
         _soundsReactionsVolume: soundsReactionsVolume,
@@ -77,6 +77,7 @@ function _mapStateToProps(state: IReduxState) {
 function _mapDispatchToProps(dispatch: Function) {
     return {
         _onVolumeChange: (volume: number) => {
+            console.log(`Volume slider changed to: ${volume}`);
             dispatch(
                 updateSettings({
                     soundsReactionsVolume: volume,

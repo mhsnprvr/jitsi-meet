@@ -66,7 +66,7 @@ echo ""
 
 echo "Starting the Jitsi Meet stack..."
 docker-compose up -d
-echo "Jitsi Meet stack is running!"
+echo "Podium stack is running!"
 echo ""
 
 echo "============================================"

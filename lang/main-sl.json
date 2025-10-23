@@ -391,7 +391,7 @@
         "answer": "Odgovori",
         "audioCallTitle": "Dohodni klic",
         "decline": "Zavrni",
-        "productLabel": "iz Jitsi Meet",
+        "productLabel": "iz Podium",
         "videoCallTitle": "Dohodni video klic"
     },
     "info": {
@@ -1135,7 +1135,7 @@
         "go": "POJDI",
         "goSmall": "POJDI",
         "headerSubtitle": "Varni in kvalitetni sestanki",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Informacije",
         "jitsiOnMobile": "Jitsi na telefonih – prenesi aplikacijo in začni sestanek od kjerkoli",
         "join": "PRIDRUŽI SE",
@@ -1143,7 +1143,7 @@
             "calendar": "Logo koledarja",
             "desktopPreviewThumbnail": "Sličica deljenja zaslona",
             "googleLogo": "Google Logo",
-            "logoDeepLinking": "Jitsi meet logo",
+            "logoDeepLinking": "Podium logo",
             "microsoftLogo": "Microsoft logo",
             "policyLogo": "Logo politike"
         },

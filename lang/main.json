@@ -592,7 +592,7 @@
         "answer": "Answer",
         "audioCallTitle": "Incoming call",
         "decline": "Dismiss",
-        "productLabel": "from Jitsi Meet",
+        "productLabel": "from Podium",
         "videoCallTitle": "Incoming video call"
     },
     "info": {
@@ -1645,7 +1645,7 @@
         "go": "GO",
         "goSmall": "GO",
         "headerSubtitle": "Secure and high quality outposts",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Dial-in info",
         "jitsiOnMobile": "Jitsi on mobile – download our apps and start a outpost from anywhere",
         "join": "CREATE / JOIN",
@@ -1653,7 +1653,7 @@
             "calendar": "Calendar logo",
             "desktopPreviewThumbnail": "Desktop preview thumbnail",
             "googleLogo": "Google Logo",
-            "logoDeepLinking": "Jitsi meet logo",
+            "logoDeepLinking": "Podium logo",
             "microsoftLogo": "Microsoft logo",
             "policyLogo": "Policy logo"
         },

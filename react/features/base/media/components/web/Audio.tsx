@@ -76,6 +76,20 @@ export default class Audio extends AbstractAudio {
     }
 
     /**
+     * Implements React's {@link Component#componentDidUpdate()}.
+     *
+     * @inheritdoc
+     */
+    override componentDidUpdate(prevProps: IProps) {
+        // Update volume if it changed
+        if (this._ref && this.props.volume !== prevProps.volume && typeof this.props.volume === "number") {
+            console.log(`Audio componentDidUpdate: volume changed from ${prevProps.volume} to ${this.props.volume}`);
+            this._ref.volume = this.props.volume;
+            console.log(`Audio componentDidUpdate: Volume after setting: ${this._ref.volume}`);
+        }
+    }
+
+    /**
      * Called when 'canplaythrough' event is triggered on the audio element,
      * which means that the whole file has been loaded.
      *
@@ -100,7 +114,9 @@ export default class Audio extends AbstractAudio {
         if (audioElement) {
             // Set volume if provided
             if (typeof this.props.volume === "number") {
+                console.log(`Audio _setRef: Setting volume to ${this.props.volume}`);
                 audioElement.volume = this.props.volume;
+                console.log(`Audio _setRef: Volume after setting: ${audioElement.volume}`);
             }
             this._maybeSetAudioElementImpl();
         } else {

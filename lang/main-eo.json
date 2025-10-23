@@ -523,7 +523,7 @@
         "answer": "Respondi",
         "audioCallTitle": "Alvenanta voko",
         "decline": "Formeti",
-        "productLabel": "el Jitsi Meet",
+        "productLabel": "el Podium",
         "videoCallTitle": "Alvenanta vida voko"
     },
     "info": {
@@ -1486,7 +1486,7 @@
         "go": "EK",
         "goSmall": "EK",
         "headerSubtitle": "Sekuraj kaj altkvalitaj renkontiĝoj",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Informoj",
         "jitsiOnMobile": "Jitsi ĉe poŝtelefono - elŝutu niajn apojn kaj komencu renkontiĝon de ie ajn",
         "join": "KREI / ALIĜI",
@@ -1494,7 +1494,7 @@
             "calendar": "Kalendara",
             "desktopPreviewThumbnail": "Miniaturo de kundividado de ekrano",
             "googleLogo": "Logotipo de Google",
-            "logoDeepLinking": "Logotipo de Jitsi Meet",
+            "logoDeepLinking": "Logotipo de Podium",
             "microsoftLogo": "Logotipo de Microsoft",
             "policyLogo": "Logotipo de regularo"
         },

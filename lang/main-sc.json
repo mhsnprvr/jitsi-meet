@@ -593,7 +593,7 @@
         "answer": "Risponde",
         "audioCallTitle": "Mutida in intrada",
         "decline": "Iscarta",
-        "productLabel": "dae Jitsi Meet",
+        "productLabel": "dae Podium",
         "videoCallTitle": "Mutida de vìdeu in intrada"
     },
     "info": {
@@ -1643,7 +1643,7 @@
         "go": "BAE",
         "goSmall": "BAE",
         "headerSubtitle": "Riunione seguras e de arta calidade",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Informatzione pro sa mutida",
         "jitsiOnMobile": "Jitsi pro mòbiles - iscàrriga is aplicatziones nostras e avia una riunione dae ònnia logu",
         "join": "CREA / INTRA",
@@ -1651,7 +1651,7 @@
             "calendar": "Icona de calendàriu",
             "desktopPreviewThumbnail": "Miniadura de previsualizatzione de iscrivania",
             "googleLogo": "Icona de Google",
-            "logoDeepLinking": "Icona de Jitsi meet",
+            "logoDeepLinking": "Icona de Podium",
             "microsoftLogo": "Icona de Microsoft",
             "policyLogo": "Polìtica de iconas"
         },

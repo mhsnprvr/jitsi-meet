@@ -1,17 +1,16 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import React, { Component } from "react";
+import { connect } from "react-redux";
 
-import { IReduxState, IStore } from '../../../app/types';
-import { AudioElement } from '../../media/components/AbstractAudio';
-import { Audio } from '../../media/components/index';
-import { _addAudioElement, _removeAudioElement } from '../actions';
-import { Sound } from '../reducer';
+import { IReduxState, IStore } from "../../../app/types";
+import { AudioElement } from "../../media/components/AbstractAudio";
+import { Audio } from "../../media/components/index";
+import { _addAudioElement, _removeAudioElement } from "../actions";
+import { Sound } from "../reducer";
 
 /**
  * {@link SoundCollection}'s properties.
  */
 interface IProps {
-
     /**
      * Dispatches {@link _ADD_AUDIO_ELEMENT} Redux action which will store the
      * {@link AudioElement} for a sound in the Redux store.
@@ -51,18 +50,18 @@ class SoundCollection extends Component<IProps> {
         let key = 0;
         const sounds = [];
 
-        for (const [ soundId, sound ] of this.props._sounds.entries()) {
+        for (const [soundId, sound] of this.props._sounds.entries()) {
             const { options, src } = sound;
 
             sounds.push(
-                React.createElement(
-                    Audio, {
-                        key,
-                        setRef: this._setRef.bind(this, soundId),
-                        src,
-                        loop: options?.loop,
-                        volume: options?.volume || 0.5 // Default volume for reaction sounds
-                    }));
+                React.createElement(Audio, {
+                    key,
+                    setRef: this._setRef.bind(this, soundId),
+                    src,
+                    loop: options?.loop,
+                    volume: options?.volume || 0.05, // Default volume for reaction sounds
+                })
+            );
             key += 1;
         }
 
@@ -100,7 +99,7 @@ class SoundCollection extends Component<IProps> {
  */
 function _mapStateToProps(state: IReduxState) {
     return {
-        _sounds: state['features/base/sounds']
+        _sounds: state["features/base/sounds"],
     };
 }
 
@@ -114,7 +113,7 @@ function _mapStateToProps(state: IReduxState) {
  *     _removeAudioElement: void
  * }}
  */
-export function _mapDispatchToProps(dispatch: IStore['dispatch']) {
+export function _mapDispatchToProps(dispatch: IStore["dispatch"]) {
     return {
         /**
          * Dispatches action to store the {@link AudioElement} for
@@ -148,7 +147,7 @@ export function _mapDispatchToProps(dispatch: IStore['dispatch']) {
          */
         _removeAudioElement(soundId: string) {
             dispatch(_removeAudioElement(soundId));
-        }
+        },
     };
 }
 

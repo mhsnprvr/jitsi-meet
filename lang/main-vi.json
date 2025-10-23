@@ -1496,7 +1496,7 @@
         "go": "Đi",
         "goSmall": "Đi",
         "headerSubtitle": "Cuộc họp an toàn và chất lượng cao",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Thông tin",
         "jitsiOnMobile": "Jitsi trên điện thoại di động - tải ứng dụng của chúng tôi và bắt đầu cuộc họp từ bất kỳ đâu",
         "join": "Tham gia",
@@ -1504,7 +1504,7 @@
             "calendar": "Biểu tượng lịch",
             "desktopPreviewThumbnail": "Ảnh xem trước trên máy tính",
             "googleLogo": "Logo Google",
-            "logoDeepLinking": "Logo Jitsi Meet",
+            "logoDeepLinking": "Logo Podium",
             "microsoftLogo": "Logo Microsoft",
             "policyLogo": "Logo chính sách"
         },

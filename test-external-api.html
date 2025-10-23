@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jitsi Meet External API Test</title>
+    <script src="libs/external_api.js"></script>
+</head>
+<body>
+    <h1>Jitsi Meet External API Test</h1>
+    <div id="meet"></div>
+    
+    <script>
+        // Test if the external API is loaded
+        if (typeof JitsiMeetExternalAPI !== 'undefined') {
+            console.log('✅ JitsiMeetExternalAPI is loaded successfully!');
+            document.body.innerHTML += '<p style="color: green;">✅ External API loaded successfully!</p>';
+            
+            // Test creating an API instance
+            try {
+                const api = new JitsiMeetExternalAPI('meet.avaxcoolyeti.com', {
+                    roomName: 'test-room-' + Math.random().toString(36).substr(2, 9),
+                    width: 700,
+                    height: 700,
+                    parentNode: document.querySelector('#meet')
+                });
+                console.log('✅ API instance created successfully!');
+                document.body.innerHTML += '<p style="color: green;">✅ API instance created successfully!</p>';
+            } catch (error) {
+                console.error('❌ Error creating API instance:', error);
+                document.body.innerHTML += '<p style="color: red;">❌ Error creating API instance: ' + error.message + '</p>';
+            }
+        } else {
+            console.error('❌ JitsiMeetExternalAPI is not loaded!');
+            document.body.innerHTML += '<p style="color: red;">❌ External API not loaded!</p>';
+        }
+    </script>
+</body>
+</html>

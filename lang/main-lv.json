@@ -593,7 +593,7 @@
         "answer": "Atbildēt",
         "audioCallTitle": "Ienākošs audio zvans",
         "decline": "Noraidīt",
-        "productLabel": "no Jitsi Meet",
+        "productLabel": "no Podium",
         "videoCallTitle": "Ienākošs video zvans"
     },
     "info": {
@@ -1625,7 +1625,7 @@
         "go": "Aiziet",
         "goSmall": "Aiziet",
         "headerSubtitle": "Drošas un kvalitatīvas sapulces",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Iezvanes informācija",
         "jitsiOnMobile": "Jitsi mobilajā ierīcē — lejupielādējiet mūsu lietotnes un sāciet sapulci no jebkuras vietas",
         "join": "IZVEIDOT / PIEVIENOTIES",
@@ -1633,7 +1633,7 @@
             "calendar": "Kalendāra logotips",
             "desktopPreviewThumbnail": "Darbvirsmas priekšskatījuma sīktēls",
             "googleLogo": "Google logotips",
-            "logoDeepLinking": "Jitsi meet logotips",
+            "logoDeepLinking": "Podium logotips",
             "microsoftLogo": "Microsoft logotips",
             "policyLogo": "Politikas logotips"
         },

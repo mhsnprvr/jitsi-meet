@@ -569,7 +569,7 @@
         "answer": "接听",
         "audioCallTitle": "呼入通话",
         "decline": "拒听",
-        "productLabel": "来自 Jitsi Meet",
+        "productLabel": "来自 Podium",
         "videoCallTitle": "呼入视频通话"
     },
     "info": {
@@ -1589,7 +1589,7 @@
         "go": "开始",
         "goSmall": "开始",
         "headerSubtitle": "安全且高品质的会议",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "拨入信息",
         "jitsiOnMobile": "手机版Jitsi – 下载我们的APP，随时随地开始会议",
         "join": "创建/加入",
@@ -1597,7 +1597,7 @@
             "calendar": "日历图标",
             "desktopPreviewThumbnail": "桌面预览缩略图",
             "googleLogo": "谷歌图标",
-            "logoDeepLinking": "Jitsi Meet图标",
+            "logoDeepLinking": "Podium图标",
             "microsoftLogo": "微软图标",
             "policyLogo": "政策图标"
         },

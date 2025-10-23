@@ -63,7 +63,7 @@ MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyA
         case APP_WILL_MOUNT:
             batch(() => {
                 const state = getState();
-                const { soundsReactionsVolume = 0.5 } = state["features/base/settings"];
+                const { soundsReactionsVolume = 0.05 } = state["features/base/settings"];
 
                 Object.keys(REACTIONS).forEach((key) => {
                     for (let i = 0; i < SOUNDS_THRESHOLDS.length; i++) {
@@ -201,12 +201,17 @@ MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyA
                 const { soundsReactionsVolume } = state["features/base/settings"];
                 const sounds = state["features/base/sounds"];
 
+                console.log(`Updating reaction sound volumes to: ${soundsReactionsVolume}`);
+
                 // Update volume on existing audio elements
                 Object.keys(REACTIONS).forEach((key) => {
                     for (let i = 0; i < SOUNDS_THRESHOLDS.length; i++) {
                         const soundId = `${REACTIONS[key].soundId}${SOUNDS_THRESHOLDS[i]}`;
                         const sound = sounds.get(soundId);
                         if (sound && sound.audioElement && typeof sound.audioElement.volume !== "undefined") {
+                            console.log(
+                                `Updating volume for ${soundId} from ${sound.audioElement.volume} to ${soundsReactionsVolume}`
+                            );
                             sound.audioElement.volume = soundsReactionsVolume;
                         }
                     }
@@ -219,6 +224,9 @@ MiddlewareRegistry.register((store: IStore) => (next: Function) => (action: AnyA
                     raiseHandSound.audioElement &&
                     typeof raiseHandSound.audioElement.volume !== "undefined"
                 ) {
+                    console.log(
+                        `Updating raise hand volume from ${raiseHandSound.audioElement.volume} to ${soundsReactionsVolume}`
+                    );
                     raiseHandSound.audioElement.volume = soundsReactionsVolume;
                 }
             }

@@ -38,7 +38,7 @@ const GeneralSection = () => {
             <FormRow label="videothumbnail.hideSelfView">
                 <Switch checked={Boolean(disableSelfView)} onChange={onSelfViewToggled} />
             </FormRow>
-            <ReactionSoundVolumeSlider />
+            {/* <ReactionSoundVolumeSlider /> */}
             <FormRow label="settings.language">
                 <View style={styles.languageButtonContainer as ViewStyle}>
                     <TouchableHighlight onPress={navigateToLanguageSelect}>

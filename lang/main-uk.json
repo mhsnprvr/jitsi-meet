@@ -467,7 +467,7 @@
         "answer": "Відповісти",
         "audioCallTitle": "Вхідний дзвінок",
         "decline": "Відхилити",
-        "productLabel": "із Jitsi Meet",
+        "productLabel": "із Podium",
         "videoCallTitle": "Вхідний відеодзвінок"
     },
     "info": {
@@ -1391,7 +1391,7 @@
         "go": "Гаразд",
         "goSmall": "Гаразд",
         "headerSubtitle": "Захищений та якісний відеозв'язок",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Телефонний зв'язок",
         "jitsiOnMobile": "Jitsi на мобільному пристрої – завантажуйте наші застосунки та починайте зустрічі, де б ви не були",
         "join": "Створити або приєднатися",
@@ -1399,7 +1399,7 @@
             "calendar": "Логотип Календаря",
             "desktopPreviewThumbnail": "Мініатюра виду екрана учасника",
             "googleLogo": "Логотип Google",
-            "logoDeepLinking": "Логотип Jitsi Meet",
+            "logoDeepLinking": "Логотип Podium",
             "microsoftLogo": "Логотип Microsoft",
             "policyLogo": "Логотип політики"
         },

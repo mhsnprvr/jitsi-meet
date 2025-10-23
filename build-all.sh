@@ -220,7 +220,7 @@ main() {
 # Handle script arguments
 case "${1:-}" in
     --help|-h)
-        echo "Jitsi Meet Complete Build Script"
+        echo "Podium Complete Build Script"
         echo
         echo "Usage: $0 [options]"
         echo

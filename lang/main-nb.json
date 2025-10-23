@@ -535,7 +535,7 @@
         "answer": "Svar",
         "audioCallTitle": "Innkommende anrop",
         "decline": "Avvis",
-        "productLabel": "fra Jitsi Meet",
+        "productLabel": "fra Podium",
         "videoCallTitle": "Innkommende videoanrop"
     },
     "info": {
@@ -1541,7 +1541,7 @@
         "go": "GÅ",
         "goSmall": "GÅ",
         "headerSubtitle": "Sikre møter av høy kvalitet",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Innringingsinformasjon",
         "jitsiOnMobile": "Jitsi på mobil – last ned appene våre og start et møte fra hvor som helst",
         "join": "OPPRETT / BLI MED",
@@ -1549,7 +1549,7 @@
             "calendar": "Kalenderlogo",
             "desktopPreviewThumbnail": "Forhåndsvisningsminiatyr for skrivebord",
             "googleLogo": "Google-logo",
-            "logoDeepLinking": "Jitsi Meet-logo",
+            "logoDeepLinking": "Podium-logo",
             "microsoftLogo": "Microsoft-logo",
             "policyLogo": "Retningslinjelogo"
         },

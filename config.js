@@ -68,8 +68,8 @@ var config = {
         enabled: false
     },
 
-    // Reaction sounds volume (0.0 to 1.0, default: 0.2 for 20%)
-    soundsReactionsVolume: 0.2,
+    // Reaction sounds volume (0.0 to 1.0, default: 0.05 for 5%)
+    soundsReactionsVolume: 0.05,
 
     // websocketKeepAliveUrl: 'https://jitsi-meet.example.com/' + subdir + '_unlock',
 
@@ -1300,7 +1300,7 @@ var config = {
     //
     //     // The desktop deeplinking config, disabled by default.
     //     desktop: {
-    //         appName: 'Jitsi Meet',
+    //         appName: 'Podium',
     //         appScheme: 'jitsi-meet,
     //         download: {
     //             linux:
@@ -1319,7 +1319,7 @@ var config = {
 
     //     // The ios deeplinking config.
     //     ios: {
-    //         appName: 'Jitsi Meet',
+    //         appName: 'Podium',
     //         // Specify mobile app scheme for opening the app from the mobile browser.
     //         appScheme: 'org.jitsi.meet',
     //         // Custom URL for downloading ios mobile app.
@@ -1328,7 +1328,7 @@ var config = {
 
     //     // The android deeplinking config.
     //     android: {
-    //         appName: 'Jitsi Meet',
+    //         appName: 'Podium',
     //         // Specify mobile app scheme for opening the app from the mobile browser.
     //         appScheme: 'org.jitsi.meet',
     //         // Custom URL for downloading android mobile app.

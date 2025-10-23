@@ -391,7 +391,7 @@
         "answer": "Tiririt",
         "audioCallTitle": "Asiwel i ikcem-d",
         "decline": "Agwi",
-        "productLabel": "seg Jitsi Meet",
+        "productLabel": "seg Podium",
         "videoCallTitle": "Asiwel s tvidyut ikcem-d"
     },
     "info": {
@@ -1134,7 +1134,7 @@
         "go": "DDU",
         "goSmall": "Ddu",
         "headerSubtitle": "Timliliyin n tɣellist d tɣara meqqren",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Talɣut",
         "jitsiOnMobile": "Jitsi ɣef uziraz - sader isnasen-nneɣ syen tebduḍ timlilit seg wanda i tebɣiḍ",
         "join": "SNULFU-D / KCEM",
@@ -1142,7 +1142,7 @@
             "calendar": "Alugu n umitay",
             "desktopPreviewThumbnail": "Tanfult n teskant n tnarit",
             "googleLogo": "Alugu n Google",
-            "logoDeepLinking": "Alugu Jitsi Meet",
+            "logoDeepLinking": "Alugu Podium",
             "microsoftLogo": "Alugu n Microsoft",
             "policyLogo": "Alugu n tsertit"
         },

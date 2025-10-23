@@ -169,7 +169,7 @@ class MoreTab extends AbstractDialogTab<IProps, any> {
                         onChange={this._onShowSubtitlesOnStageChanged}
                     />
                 )}
-                <ReactionSoundVolumeSlider />
+                {/* <ReactionSoundVolumeSlider /> */}
                 {showLanguageSettings && this._renderLanguageSelect()}
             </div>
         );

@@ -15,7 +15,7 @@ import styles from "./styles";
 const ReactionSoundVolumeSlider = () => {
     const { t } = useTranslation();
     const dispatch = useDispatch();
-    const { soundsReactionsVolume = 0.5 } = useSelector((state: IReduxState) => state["features/base/settings"]);
+    const { soundsReactionsVolume = 0.05 } = useSelector((state: IReduxState) => state["features/base/settings"]);
 
     const onVolumeChange = (volume: number) => {
         dispatch(updateSettings({ soundsReactionsVolume: volume }));

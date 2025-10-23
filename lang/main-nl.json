@@ -382,7 +382,7 @@
         "answer": "Beantwoorden",
         "audioCallTitle": "Inkomende oproep",
         "decline": "Negeren",
-        "productLabel": "vanuit Jitsi Meet",
+        "productLabel": "vanuit Podium",
         "videoCallTitle": "Inkomende video-oproep"
     },
     "info": {
@@ -1090,7 +1090,7 @@
         "go": "GAAN",
         "goSmall": "GAAN",
         "headerSubtitle": "Veilige vergaderingen van hoge kwaliteit",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Informatie",
         "jitsiOnMobile": "Jitsi op de mobiele telefoon - download onze apps en start overal een vergadering",
         "join": "AANMAKEN / DEELNEMEN",

@@ -42,7 +42,7 @@ popd
 if [[ $MVN_HTTP == 0 ]]; then
     pushd ${MVN_REPO_PATH}
     git add -A .
-    git commit -m "Jitsi Meet SDK + dependencies: ${SDK_VERSION}"
+    git commit -m "Podium SDK + dependencies: ${SDK_VERSION}"
     popd
 fi
 

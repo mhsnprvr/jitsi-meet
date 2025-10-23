@@ -444,7 +444,7 @@
         "answer": "Resposta",
         "audioCallTitle": "Trucada entrant",
         "decline": "Rebutja",
-        "productLabel": "de Jitsi Meet",
+        "productLabel": "de Podium",
         "videoCallTitle": "Videotrucada entrant"
     },
     "info": {
@@ -1334,7 +1334,7 @@
         "go": "SOM-HI",
         "goSmall": "SOM-HI",
         "headerSubtitle": "Reunions d'alta qualitat i segures",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Informació de marcatge",
         "jitsiOnMobile": "Jitsi al mòbil – baixeu les nostres aplicacions i comenceu una reunió des de qualsevol lloc",
         "join": "CREA / ENTRA",
@@ -1342,7 +1342,7 @@
             "calendar": "Logotip del Calendari",
             "desktopPreviewThumbnail": "Miniatura de visualització prèvia de l'escriptori",
             "googleLogo": "Logotip de Google",
-            "logoDeepLinking": "Logotip de Jitsi Meet",
+            "logoDeepLinking": "Logotip de Podium",
             "microsoftLogo": "Logotip de Microsoft",
             "policyLogo": "Logotip de la política"
         },

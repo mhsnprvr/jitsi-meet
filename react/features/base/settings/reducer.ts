@@ -36,7 +36,7 @@ const DEFAULT_STATE: ISettingsState = {
     soundsParticipantLeft: true,
     soundsTalkWhileMuted: true,
     soundsReactions: true,
-    soundsReactionsVolume: 0.2,
+    soundsReactionsVolume: 0.05,
     startAudioOnly: false,
     startCarMode: false,
     startWithAudioMuted: false,

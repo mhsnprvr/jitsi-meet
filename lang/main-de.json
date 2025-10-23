@@ -552,7 +552,7 @@
         "answer": "Antworten",
         "audioCallTitle": "Eingehender Anruf",
         "decline": "OK",
-        "productLabel": "von Jitsi Meet",
+        "productLabel": "von Podium",
         "videoCallTitle": "Eingehender Videoanruf"
     },
     "info": {
@@ -1572,7 +1572,7 @@
         "go": "Los",
         "goSmall": "Los",
         "headerSubtitle": "Sichere und hochqualitative Konferenzen",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Einwahlinformationen",
         "jitsiOnMobile": "Jitsi unterwegs – einfach unsere Apps herunterladen und Konferenzen von überall starten",
         "join": "ERSTELLEN / BEITRETEN",
@@ -1580,7 +1580,7 @@
             "calendar": "Kalender Logo",
             "desktopPreviewThumbnail": "Desktop-Vorschau Thumbnail",
             "googleLogo": "Google Logo",
-            "logoDeepLinking": "Jitsi Meet Logo",
+            "logoDeepLinking": "Podium Logo",
             "microsoftLogo": "Microsoft Logo",
             "policyLogo": "Richtlinienlogo"
         },

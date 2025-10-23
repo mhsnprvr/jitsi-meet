@@ -683,7 +683,6 @@ async function checkUserRole(
     roomName: string,
     userEmail: string | undefined
 ): Promise<{ isCreator: boolean; isCoHost: boolean }> {
-    logger.info("Checking user role for room:", roomName, userEmail);
     if (!userEmail) {
         return {
             isCreator: false,
@@ -693,16 +692,21 @@ async function checkUserRole(
     try {
         const userUuid = transformEmailLikeToId(userEmail);
         const roomUuid = roomName;
-        logger.info("roomUuid", roomUuid);
         const response = await fetch(`https://dev.podium.myfihub.com/api/v1/outposts/detail?uuid=${roomUuid}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
             },
         });
-        logger.info("response", response);
-        const data = await response.json();
-        console.log("data", data);
+        const responseData = await response.json();
+        const data = responseData.data;
+        console.log("data: ", data);
+        if (!data) {
+            return {
+                isCreator: false,
+                isCoHost: false,
+            };
+        }
         const creatorUuid = data.creator_user_uuid;
         const cohostUuids = data.cohost_user_uuids;
         console.log("creatorUuid", creatorUuid);

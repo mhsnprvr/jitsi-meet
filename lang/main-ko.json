@@ -534,7 +534,7 @@
         "answer": "응답",
         "audioCallTitle": "수신 전화",
         "decline": "거절",
-        "productLabel": "Jitsi Meet에서",
+        "productLabel": "Podium에서",
         "videoCallTitle": "수신 화상 전화"
     },
     "info": {
@@ -1539,7 +1539,7 @@
         "go": "계속",
         "goSmall": "계속",
         "headerSubtitle": "안전하고 고품질의 회의",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "정보",
         "jitsiOnMobile": "모바일에서 Jitsi – 앱을 다운로드하고 어디서나 회의를 시작하세요",
         "join": "가입",
@@ -1547,7 +1547,7 @@
             "calendar": "캘린더 로고",
             "desktopPreviewThumbnail": "데스크톱 미리보기 썸네일",
             "googleLogo": "구글 로고",
-            "logoDeepLinking": "Jitsi meet 로고",
+            "logoDeepLinking": "Podium 로고",
             "microsoftLogo": "마이크로소프트 로고",
             "policyLogo": "정책 로고"
         },

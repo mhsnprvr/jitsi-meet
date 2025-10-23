@@ -465,7 +465,7 @@
         "answer": "Απάντηση",
         "audioCallTitle": "Εισερχόμενη κλήση",
         "decline": "Απόρριψη",
-        "productLabel": "από το Jitsi Meet",
+        "productLabel": "από το Podium",
         "videoCallTitle": "Εισερχόμενη βιντεοκλήση"
     },
     "info": {
@@ -1380,7 +1380,7 @@
         "go": "ΠΑΜΕ",
         "goSmall": "ΠΑΜΕ",
         "headerSubtitle": "Ασφαλείς και υψηλής ποιότητας συσκέψεις",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Πληροφορίες Κλήσης",
         "jitsiOnMobile": "Jitsi στο κινητό – κατεβάστε τις εφαρμογές και ξεκινήστε μια σύσκεψη από παντού",
         "join": "ΔΗΜΙΟΥΡΓΙΑ / ΕΙΣΟΔΟΣ",
@@ -1388,7 +1388,7 @@
             "calendar": "Λογότυπο ημερολογίου",
             "desktopPreviewThumbnail": "Εικονίδιο προεπισκόπησης επιφάνειας",
             "googleLogo": "Λογότυπο Google",
-            "logoDeepLinking": "Λογότυπο Jitsi meet",
+            "logoDeepLinking": "Λογότυπο Podium",
             "microsoftLogo": "Λογότυπο Microsoft",
             "policyLogo": "Λογότυπο πολιτικής"
         },

@@ -542,7 +542,7 @@
         "answer": "Réponse",
         "audioCallTitle": "Appel entrant",
         "decline": "Rejeter",
-        "productLabel": "via Jitsi Meet",
+        "productLabel": "via Podium",
         "videoCallTitle": "Appel vidéo entrant"
     },
     "info": {
@@ -1495,7 +1495,7 @@
         "go": "Aller",
         "goSmall": "Aller",
         "headerSubtitle": "Conférences sécurisées et de haute qualité",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Ret. arr.",
         "jitsiOnMobile": "Jitsi sur mobile – télécharger notre application et démarrez des conférences de n'import où",
         "join": "CRÉER / REJOINDRE",
@@ -1503,7 +1503,7 @@
             "calendar": "Logo Calendar",
             "desktopPreviewThumbnail": "Miniature d'aperçu du bureau",
             "googleLogo": "Logo Google",
-            "logoDeepLinking": "Logo Jitsi meet",
+            "logoDeepLinking": "Logo Podium",
             "microsoftLogo": "Logo Microsoft",
             "policyLogo": "Logo de la politique"
         },

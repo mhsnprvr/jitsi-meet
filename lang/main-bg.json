@@ -592,7 +592,7 @@
         "answer": "Вдигни",
         "audioCallTitle": "Входящ разговор",
         "decline": "Отхвърляне",
-        "productLabel": "от Jitsi Meet",
+        "productLabel": "от Podium",
         "videoCallTitle": "Входящ видео разговор"
     },
     "info": {
@@ -1643,7 +1643,7 @@
         "go": "НАПРЕД",
         "goSmall": "НАПРЕД",
         "headerSubtitle": "Сигурни и висококачествени срещи",
-        "headerTitle": "Jitsi Meet",
+        "headerTitle": "Podium",
         "info": "Информация",
         "jitsiOnMobile": "Jitsi на мобилно – свалете приложенията ни и започнете среща отвсякъде",
         "join": "Създай / Влез",
@@ -1651,7 +1651,7 @@
             "calendar": "Лого на календар",
             "desktopPreviewThumbnail": "Миниатюра за преглед на работен плот",
             "googleLogo": "Google лого",
-            "logoDeepLinking": "Jitsi meet лого",
+            "logoDeepLinking": "Podium лого",
             "microsoftLogo": "Microsoft лого",
             "policyLogo": "Лого на политика"
         },

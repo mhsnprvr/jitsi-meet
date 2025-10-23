@@ -728,14 +728,16 @@ export function isIconUrl(icon?: string | Object) {
  */
 export function isLocalParticipantModerator(stateful: IStateful) {
     const state = toState(stateful)["features/base/participants"];
+    const isCreator = isLocalParticipantCreator(stateful);
+    const isCoHost = isLocalParticipantCoHost(stateful);
 
     const { local } = state;
 
     if (!local) {
         return false;
     }
-
-    return isParticipantModerator(local);
+    const isModerator = isParticipantModerator(local) && (isCreator || isCoHost);
+    return isModerator;
 }
 
 /**

@@ -44,8 +44,20 @@ function _playSound({ getState }: IStore, soundId: string) {
     if (sound) {
         if (sound.audioElement) {
             // Apply volume from sound options if available
-            if (sound.options?.volume !== undefined && typeof sound.audioElement.volume !== "undefined") {
+            if (sound.options?.volume !== undefined) {
+                console.log(
+                    `Setting volume for ${soundId} to ${sound.options.volume} (current: ${sound.audioElement.volume})`
+                );
                 sound.audioElement.volume = sound.options.volume;
+                console.log(`Volume after setting: ${sound.audioElement.volume}`);
+            } else {
+                // Get volume from settings if no volume option provided
+                const state = getState();
+                const { soundsReactionsVolume = 0.05 } = state["features/base/settings"];
+                sound.audioElement.volume = soundsReactionsVolume;
+                console.log(
+                    `Volume not set for ${soundId}: options.volume=${sound.options?.volume}, using settings volume: ${soundsReactionsVolume}`
+                );
             }
             sound.audioElement.play();
         } else {

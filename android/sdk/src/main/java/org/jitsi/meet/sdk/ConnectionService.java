@@ -334,7 +334,7 @@ public class ConnectionService extends android.telecom.ConnectionService {
     }
 
     /**
-     * Connection implementation for Jitsi Meet's {@link ConnectionService}.
+     * Connection implementation for Podium's {@link ConnectionService}.
      *
      * @author Pawel Domas
      */

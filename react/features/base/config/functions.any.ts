@@ -1,33 +1,33 @@
 // @ts-ignore
-import { jitsiLocalStorage } from '@jitsi/js-utils';
+import { jitsiLocalStorage } from "@jitsi/js-utils";
 // eslint-disable-next-line lines-around-comment
 // @ts-ignore
-import { safeJsonParse } from '@jitsi/js-utils/json';
-import { isEmpty, mergeWith, pick } from 'lodash-es';
+import { safeJsonParse } from "@jitsi/js-utils/json";
+import { isEmpty, mergeWith, pick } from "lodash-es";
 
-import { IReduxState } from '../../app/types';
-import { browser } from '../lib-jitsi-meet';
-import { getLocalParticipant } from '../participants/functions';
-import { isEmbedded } from '../util/embedUtils';
-import { parseURLParams } from '../util/parseURLParams';
+import { IReduxState } from "../../app/types";
+import { browser } from "../lib-jitsi-meet";
+import { getLocalParticipant } from "../participants/functions";
+import { isEmbedded } from "../util/embedUtils";
+import { parseURLParams } from "../util/parseURLParams";
 
-import { IConfig } from './configType';
-import CONFIG_WHITELIST from './configWhitelist';
+import { IConfig } from "./configType";
+import CONFIG_WHITELIST from "./configWhitelist";
 import {
     DEFAULT_HELP_CENTRE_URL,
     DEFAULT_PRIVACY_URL,
     DEFAULT_TERMS_URL,
     FEATURE_FLAGS,
-    _CONFIG_STORE_PREFIX
-} from './constants';
-import INTERFACE_CONFIG_WHITELIST from './interfaceConfigWhitelist';
-import logger from './logger';
+    _CONFIG_STORE_PREFIX,
+} from "./constants";
+import INTERFACE_CONFIG_WHITELIST from "./interfaceConfigWhitelist";
+import logger from "./logger";
 
 // XXX The function getRoomName is split out of
 // functions.any.js because it is bundled in both app.bundle and
 // do_external_connect, webpack 1 does not support tree shaking, and we don't
 // want all functions to be bundled in do_external_connect.
-export { default as getRoomName } from './getRoomName';
+export { default as getRoomName } from "./getRoomName";
 
 /**
  * Create a "fake" configuration object for the given base URL. This is used in case the config
@@ -42,12 +42,12 @@ export function createFakeConfig(baseURL: string) {
     return {
         hosts: {
             domain: url.hostname,
-            muc: `conference.${url.hostname}`
+            muc: `conference.${url.hostname}`,
         },
         bosh: `${baseURL}http-bind`,
         p2p: {
-            enabled: true
-        }
+            enabled: true,
+        },
     };
 }
 
@@ -58,7 +58,7 @@ export function createFakeConfig(baseURL: string) {
  * @returns {string}
  */
 export function getMeetingRegion(state: IReduxState) {
-    return state['features/base/config']?.deploymentInfo?.region || '';
+    return state["features/base/config"]?.deploymentInfo?.region || "";
 }
 
 /**
@@ -79,7 +79,7 @@ export function getSsrcRewritingFeatureFlag(state: IReduxState) {
  * @returns {boolean}
  */
 export function getFeatureFlag(state: IReduxState, featureFlag: string) {
-    const featureFlags = state['features/base/config']?.flags || {};
+    const featureFlags = state["features/base/config"]?.flags || {};
 
     return featureFlags[featureFlag as keyof typeof featureFlags];
 }
@@ -91,7 +91,7 @@ export function getFeatureFlag(state: IReduxState, featureFlag: string) {
  * @returns {boolean}
  */
 export function getDisableRemoveRaisedHandOnFocus(state: IReduxState) {
-    return state['features/base/config']?.raisedHands?.disableRemoveRaisedHandOnFocus || false;
+    return state["features/base/config"]?.raisedHands?.disableRemoveRaisedHandOnFocus || false;
 }
 
 /**
@@ -101,7 +101,7 @@ export function getDisableRemoveRaisedHandOnFocus(state: IReduxState) {
  * @returns {boolean}
  */
 export function getDisableLowerHandByModerator(state: IReduxState) {
-    return state['features/base/config']?.raisedHands?.disableLowerHandByModerator || false;
+    return state["features/base/config"]?.raisedHands?.disableLowerHandByModerator || false;
 }
 
 /**
@@ -111,7 +111,7 @@ export function getDisableLowerHandByModerator(state: IReduxState) {
  * @returns {boolean}
  */
 export function getDisableLowerHandNotification(state: IReduxState) {
-    return state['features/base/config']?.raisedHands?.disableLowerHandNotification || true;
+    return state["features/base/config"]?.raisedHands?.disableLowerHandNotification || true;
 }
 
 /**
@@ -121,7 +121,7 @@ export function getDisableLowerHandNotification(state: IReduxState) {
  * @returns {boolean}
  */
 export function getDisableNextSpeakerNotification(state: IReduxState) {
-    return state['features/base/config']?.raisedHands?.disableNextSpeakerNotification || false;
+    return state["features/base/config"]?.raisedHands?.disableNextSpeakerNotification || false;
 }
 
 /**
@@ -131,7 +131,7 @@ export function getDisableNextSpeakerNotification(state: IReduxState) {
  * @returns {string}
  */
 export function getRecordingSharingUrl(state: IReduxState) {
-    return state['features/base/config'].recordingSharingUrl;
+    return state["features/base/config"].recordingSharingUrl;
 }
 
 /**
@@ -159,21 +159,19 @@ export function overrideConfigJSON(config: IConfig, interfaceConfig: any, json: 
     for (const configName of Object.keys(json)) {
         let configObj;
 
-        if (configName === 'config') {
+        if (configName === "config") {
             configObj = config;
-        } else if (configName === 'interfaceConfig') {
+        } else if (configName === "interfaceConfig") {
             configObj = interfaceConfig;
         }
         if (configObj) {
-            const configJSON
-                = getWhitelistedJSON(configName as 'interfaceConfig' | 'config', json[configName]);
+            const configJSON = getWhitelistedJSON(configName as "interfaceConfig" | "config", json[configName]);
 
             if (!isEmpty(configJSON)) {
                 logger.info(`Extending ${configName} with: ${JSON.stringify(configJSON)}`);
 
                 // eslint-disable-next-line arrow-body-style
                 mergeWith(configObj, configJSON, (oldValue, newValue) => {
-
                     // XXX We don't want to merge the arrays, we want to
                     // overwrite them.
                     return Array.isArray(oldValue) ? newValue : undefined;
@@ -194,17 +192,17 @@ export function overrideConfigJSON(config: IConfig, interfaceConfig: any, json: 
  * @returns {Object} - The result object only with the keys
  * that are whitelisted.
  */
-export function getWhitelistedJSON(configName: 'interfaceConfig' | 'config', configJSON: any): Object {
+export function getWhitelistedJSON(configName: "interfaceConfig" | "config", configJSON: any): Object {
     // Disable whitelisting in dev mode.
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        logger.warn('Whitelisting is disabled in dev mode, accepting any overrides');
+    if (typeof __DEV__ !== "undefined" && __DEV__) {
+        logger.warn("Whitelisting is disabled in dev mode, accepting any overrides");
 
         return configJSON;
     }
 
-    if (configName === 'interfaceConfig') {
+    if (configName === "interfaceConfig") {
         return pick(configJSON, INTERFACE_CONFIG_WHITELIST);
-    } else if (configName === 'config') {
+    } else if (configName === "config") {
         return pick(configJSON, CONFIG_WHITELIST);
     }
 
@@ -218,8 +216,7 @@ export function getWhitelistedJSON(configName: 'interfaceConfig' | 'config', con
  * @returns {boolean}
  */
 export function isNameReadOnly(state: IReduxState): boolean {
-    return Boolean(state['features/base/config'].disableProfile
-        || state['features/base/config'].readOnlyName);
+    return Boolean(state["features/base/config"].disableProfile || state["features/base/config"].readOnlyName);
 }
 
 /**
@@ -229,7 +226,7 @@ export function isNameReadOnly(state: IReduxState): boolean {
  * @returns {boolean}
  */
 export function isNextToSpeak(state: IReduxState): boolean {
-    const raisedHandsQueue = state['features/base/participants'].raisedHandsQueue || [];
+    const raisedHandsQueue = state["features/base/participants"].raisedHandsQueue || [];
     const participantId = getLocalParticipant(state)?.id;
 
     return participantId === raisedHandsQueue[0]?.id;
@@ -242,7 +239,7 @@ export function isNextToSpeak(state: IReduxState): boolean {
  * @returns {boolean}
  */
 export function hasBeenNotified(state: IReduxState): boolean {
-    const raisedHandsQueue = state['features/base/participants'].raisedHandsQueue;
+    const raisedHandsQueue = state["features/base/participants"].raisedHandsQueue;
 
     return Boolean(raisedHandsQueue[0]?.hasBeenNotified);
 }
@@ -254,7 +251,7 @@ export function hasBeenNotified(state: IReduxState): boolean {
  * @returns {boolean}
  */
 export function isDisplayNameVisible(state: IReduxState): boolean {
-    return !state['features/base/config'].hideDisplayName;
+    return !state["features/base/config"].hideDisplayName;
 }
 
 /**
@@ -264,8 +261,9 @@ export function isDisplayNameVisible(state: IReduxState): boolean {
  * @returns {boolean}
  */
 export function isAdvancedAudioSettingsEnabled(state: IReduxState): boolean {
-
-    return !browser.isWebKitBased() && Boolean(state['features/base/config']?.audioQuality?.enableAdvancedAudioSettings);
+    return (
+        !browser.isWebKitBased() && Boolean(state["features/base/config"]?.audioQuality?.enableAdvancedAudioSettings)
+    );
 }
 
 /**
@@ -310,8 +308,7 @@ export function restoreConfig(baseURL: string) {
  * @param {URI} location - The new location to which the app is navigating to.
  * @returns {void}
  */
-export function setConfigFromURLParams(
-        config: IConfig, interfaceConfig: any, location: string | URL) {
+export function setConfigFromURLParams(config: IConfig, interfaceConfig: any, location: string | URL) {
     const params = parseURLParams(location);
     const json: any = {};
 
@@ -319,7 +316,7 @@ export function setConfigFromURLParams(
     // params = {
     //     "config.disableAudioLevels": false,
     //     "config.channelLastN": -1,
-    //     "interfaceConfig.APP_NAME": "Jitsi Meet"
+    //     "interfaceConfig.APP_NAME": "Podium"
     // }
     // We want to have:
     // json = {
@@ -328,7 +325,7 @@ export function setConfigFromURLParams(
     //         "channelLastN": -1
     //     },
     //     interfaceConfig: {
-    //         "APP_NAME": "Jitsi Meet"
+    //         "APP_NAME": "Podium"
     //     }
     // }
     config && (json.config = {});
@@ -336,8 +333,8 @@ export function setConfigFromURLParams(
 
     for (const param of Object.keys(params)) {
         let base = json;
-        const names = param.split('.');
-        const last = names.pop() ?? '';
+        const names = param.split(".");
+        const last = names.pop() ?? "";
 
         for (const name of names) {
             base = base[name] = base[name] || {};
@@ -349,46 +346,56 @@ export function setConfigFromURLParams(
     overrideConfigJSON(config, interfaceConfig, json);
 
     // Print warning about deprecated URL params
-    if ('interfaceConfig.SUPPORT_URL' in params) {
-        logger.warn('Using SUPPORT_URL interfaceConfig URL overwrite is deprecated.'
-            + ' Please use supportUrl from advanced branding!');
+    if ("interfaceConfig.SUPPORT_URL" in params) {
+        logger.warn(
+            "Using SUPPORT_URL interfaceConfig URL overwrite is deprecated." +
+                " Please use supportUrl from advanced branding!"
+        );
     }
 
-    if ('config.defaultLogoUrl' in params) {
-        logger.warn('Using defaultLogoUrl config URL overwrite is deprecated.'
-            + ' Please use logoImageUrl from advanced branding!');
+    if ("config.defaultLogoUrl" in params) {
+        logger.warn(
+            "Using defaultLogoUrl config URL overwrite is deprecated." +
+                " Please use logoImageUrl from advanced branding!"
+        );
     }
 
-    const deploymentUrlsConfig = params['config.deploymentUrls'] ?? {};
+    const deploymentUrlsConfig = params["config.deploymentUrls"] ?? {};
 
-    if ('config.deploymentUrls.downloadAppsUrl' in params || 'config.deploymentUrls.userDocumentationURL' in params
-            || (typeof deploymentUrlsConfig === 'object'
-                && ('downloadAppsUrl' in deploymentUrlsConfig || 'userDocumentationURL' in deploymentUrlsConfig))) {
-        logger.warn('Using deploymentUrls config URL overwrite is deprecated.'
-            + ' Please use downloadAppsUrl and/or userDocumentationURL from advanced branding!');
+    if (
+        "config.deploymentUrls.downloadAppsUrl" in params ||
+        "config.deploymentUrls.userDocumentationURL" in params ||
+        (typeof deploymentUrlsConfig === "object" &&
+            ("downloadAppsUrl" in deploymentUrlsConfig || "userDocumentationURL" in deploymentUrlsConfig))
+    ) {
+        logger.warn(
+            "Using deploymentUrls config URL overwrite is deprecated." +
+                " Please use downloadAppsUrl and/or userDocumentationURL from advanced branding!"
+        );
     }
 
-    const liveStreamingConfig = params['config.liveStreaming'] ?? {};
+    const liveStreamingConfig = params["config.liveStreaming"] ?? {};
 
-    if (('interfaceConfig.LIVE_STREAMING_HELP_LINK' in params)
-            || ('config.liveStreaming.termsLink' in params)
-            || ('config.liveStreaming.dataPrivacyLink' in params)
-            || ('config.liveStreaming.helpLink' in params)
-            || (typeof params['config.liveStreaming'] === 'object' && 'config.liveStreaming' in params
-                && (
-                    'termsLink' in liveStreamingConfig
-                    || 'dataPrivacyLink' in liveStreamingConfig
-                    || 'helpLink' in liveStreamingConfig
-                )
-            )) {
-        logger.warn('Using liveStreaming config URL overwrite and/or LIVE_STREAMING_HELP_LINK interfaceConfig URL'
-            + ' overwrite is deprecated. Please use liveStreaming from advanced branding!');
+    if (
+        "interfaceConfig.LIVE_STREAMING_HELP_LINK" in params ||
+        "config.liveStreaming.termsLink" in params ||
+        "config.liveStreaming.dataPrivacyLink" in params ||
+        "config.liveStreaming.helpLink" in params ||
+        (typeof params["config.liveStreaming"] === "object" &&
+            "config.liveStreaming" in params &&
+            ("termsLink" in liveStreamingConfig ||
+                "dataPrivacyLink" in liveStreamingConfig ||
+                "helpLink" in liveStreamingConfig))
+    ) {
+        logger.warn(
+            "Using liveStreaming config URL overwrite and/or LIVE_STREAMING_HELP_LINK interfaceConfig URL" +
+                " overwrite is deprecated. Please use liveStreaming from advanced branding!"
+        );
     }
 
     // When not in an iframe, start without media if the pre-join page is not enabled.
-    if (!isEmbedded()
-            && 'config.prejoinConfig.enabled' in params && config.prejoinConfig?.enabled === false) {
-        logger.warn('Using prejoinConfig.enabled config URL overwrite implies starting without media.');
+    if (!isEmbedded() && "config.prejoinConfig.enabled" in params && config.prejoinConfig?.enabled === false) {
+        logger.warn("Using prejoinConfig.enabled config URL overwrite implies starting without media.");
         config.disableInitialGUM = true;
     }
 }
@@ -402,7 +409,7 @@ export function setConfigFromURLParams(
  * @returns {string}
  */
 export function getDialOutStatusUrl(state: IReduxState) {
-    return state['features/base/config'].guestDialOutStatusUrl;
+    return state["features/base/config"].guestDialOutStatusUrl;
 }
 
 /**
@@ -412,7 +419,7 @@ export function getDialOutStatusUrl(state: IReduxState) {
  * @returns {string}
  */
 export function getDialOutUrl(state: IReduxState) {
-    return state['features/base/config'].guestDialOutUrl;
+    return state["features/base/config"].guestDialOutUrl;
 }
 
 /**
@@ -422,7 +429,7 @@ export function getDialOutUrl(state: IReduxState) {
  * @returns {Object}
  */
 export function getSecurityUiConfig(state: IReduxState) {
-    return state['features/base/config']?.securityUi || {};
+    return state["features/base/config"]?.securityUi || {};
 }
 
 /**
@@ -436,13 +443,13 @@ export function getSecurityUiConfig(state: IReduxState) {
  * }}
  */
 export function getLegalUrls(state: IReduxState) {
-    const helpCentreURL = state['features/base/config']?.helpCentreURL;
-    const configLegalUrls = state['features/base/config']?.legalUrls;
+    const helpCentreURL = state["features/base/config"]?.helpCentreURL;
+    const configLegalUrls = state["features/base/config"]?.legalUrls;
 
     return {
         privacy: configLegalUrls?.privacy || DEFAULT_PRIVACY_URL,
         helpCentre: helpCentreURL || configLegalUrls?.helpCentre || DEFAULT_HELP_CENTRE_URL,
-        terms: configLegalUrls?.terms || DEFAULT_TERMS_URL
+        terms: configLegalUrls?.terms || DEFAULT_TERMS_URL,
     };
 }
 

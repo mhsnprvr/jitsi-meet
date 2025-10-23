@@ -26,7 +26,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import org.jitsi.meet.sdk.log.JitsiMeetLogger;
 
 /**
- * The react-native side of Jitsi Meet's {@link ConnectionService}. Exposes
+ * The react-native side of Podium's {@link ConnectionService}. Exposes
  * the Java Script API.
  *
  * @author Pawel Domas
