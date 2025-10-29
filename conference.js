@@ -100,6 +100,7 @@ import {
 import { IGUMPendingState } from './react/features/base/media/types';
 import {
     dominantSpeakerChanged,
+    grantModerator,
     localParticipantAudioLevelChanged,
     localParticipantRoleChanged,
     participantKicked,
@@ -111,9 +112,11 @@ import {
     screenshareParticipantDisplayNameChanged,
     updateRemoteParticipantFeatures
 } from './react/features/base/participants/actions';
+import { PARTICIPANT_ROLE } from './react/features/base/participants/constants';
 import {
     getLocalParticipant,
     getNormalizedDisplayName,
+    getParticipantById as getParticipantByIdFromRedux,
     getParticipantByIdOrUndefined,
     getVirtualScreenshareParticipantByOwnerId,
     isLocalParticipantModerator
@@ -1383,28 +1386,39 @@ export default {
             APP.store.dispatch(updateRemoteParticipantFeatures(user));
             logger.log(`USER ${id} connected:`, user);
             APP.UI.addUser(user);
-
-
             const state = APP.store.getState();
             const roomName = getRoomName(state);
             const settings = state["features/base/settings"];
             const outpostUuid = roomName;
             const myUuid = transformEmailLikeToId(settings.email);
-             const creatorUuid = getCreatorUuid(state);
+             const creatorUuid = getCreatorUuid(state).replaceAll('"', '');
              const cohostsUuids = getCohostsUuids(state);
-             console.log("myUuid:::", myUuid);
-             console.log("creatorUuid:::", creatorUuid);
-             console.log("cohostsUuids:::", cohostsUuids);
-             console.log("outpostUuid:::", outpostUuid);
-             const isModerator = isLocalParticipantModerator(state);
-             console.log("isModerator:::", isModerator);
-             if (isModerator) {
-               const participants=room.getParticipants();
-               console.log("participants:::", participants);
-             }
-
+             const iAmModerator = isLocalParticipantModerator(state);
+             const iShouldNotBeModerator=myUuid!==creatorUuid && !cohostsUuids.includes(myUuid);
+             
+             // If I'm moderator but shouldn't be, change my role to participant (UI only)
+     
+             
+             if (iAmModerator) {
+               setTimeout(() => {
+                const freshState = APP.store.getState();
+                // Get participant from Redux after participantJoined is dispatched
+                const participant = getParticipantByIdFromRedux(freshState, id);
+                const email = participant?.email;
+                const userUuid = transformEmailLikeToId(email); 
+                // Grant moderator if user is creator or cohost
+                if (userUuid === creatorUuid || (Array.isArray(cohostsUuids) && cohostsUuids.includes(userUuid))) {
+                    // Grant moderator role to this participant
+                    APP.store.dispatch(grantModerator(id));
+                    console.log('Granted moderator to:', id, userUuid);
+                    if (iShouldNotBeModerator) {
+                        APP.store.dispatch(localParticipantRoleChanged(PARTICIPANT_ROLE.PARTICIPANT));
+                    }
+                }
+            
+            }, 2000);
+            }
             console.log("user:::", user);
-
 
         });
 
