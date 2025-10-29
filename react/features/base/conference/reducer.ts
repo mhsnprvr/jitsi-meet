@@ -1,14 +1,14 @@
-import { AnyAction } from 'redux';
+import { AnyAction } from "redux";
 
-import { FaceLandmarks } from '../../face-landmarks/types';
-import { LOCKED_LOCALLY, LOCKED_REMOTELY } from '../../room-lock/constants';
-import { ISpeakerStats } from '../../speaker-stats/reducer';
-import { SET_CONFIG } from '../config/actionTypes';
-import { IConfig } from '../config/configType';
-import { CONNECTION_WILL_CONNECT, SET_LOCATION_URL } from '../connection/actionTypes';
-import { JitsiConferenceErrors } from '../lib-jitsi-meet';
-import ReducerRegistry from '../redux/ReducerRegistry';
-import { assign, equals, set } from '../redux/functions';
+import { FaceLandmarks } from "../../face-landmarks/types";
+import { LOCKED_LOCALLY, LOCKED_REMOTELY } from "../../room-lock/constants";
+import { ISpeakerStats } from "../../speaker-stats/reducer";
+import { SET_CONFIG } from "../config/actionTypes";
+import { IConfig } from "../config/configType";
+import { CONNECTION_WILL_CONNECT, SET_LOCATION_URL } from "../connection/actionTypes";
+import { JitsiConferenceErrors } from "../lib-jitsi-meet";
+import ReducerRegistry from "../redux/ReducerRegistry";
+import { assign, equals, set } from "../redux/functions";
 
 import {
     AUTH_STATUS_CHANGED,
@@ -26,6 +26,8 @@ import {
     LOCK_STATE_CHANGED,
     P2P_STATUS_CHANGED,
     SET_ASSUMED_BANDWIDTH_BPS,
+    SET_COHOSTS_UUIDS,
+    SET_CREATOR_UUID,
     SET_FOLLOW_ME,
     SET_FOLLOW_ME_RECORDER,
     SET_OBFUSCATED_ROOM,
@@ -34,9 +36,9 @@ import {
     SET_ROOM,
     SET_START_MUTED_POLICY,
     SET_START_REACTIONS_MUTED,
-    UPDATE_CONFERENCE_METADATA
-} from './actionTypes';
-import { isRoomValid } from './functions';
+    UPDATE_CONFERENCE_METADATA,
+} from "./actionTypes";
+import { isRoomValid } from "./functions";
 
 const DEFAULT_STATE = {
     assumedBandwidthBps: undefined,
@@ -50,7 +52,10 @@ const DEFAULT_STATE = {
     metadata: undefined,
     password: undefined,
     passwordRequired: undefined,
-    properties: undefined
+    properties: undefined,
+    // Custom conference metadata
+    creatorUuid: undefined,
+    cohostsUuids: undefined,
 };
 
 export interface IConferenceMetadata {
@@ -200,6 +205,9 @@ export interface IConferenceState {
     startReactionsMuted?: boolean;
     startVideoMutedPolicy?: boolean;
     subject?: string;
+    // Custom conference metadata
+    creatorUuid?: string;
+    cohostsUuids?: string[];
 }
 
 export interface IJitsiConferenceRoom {
@@ -221,108 +229,121 @@ interface IConferenceFailedError extends Error {
  * Listen for actions that contain the conference object, so that it can be
  * stored for use by other action creators.
  */
-ReducerRegistry.register<IConferenceState>('features/base/conference',
+ReducerRegistry.register<IConferenceState>(
+    "features/base/conference",
     (state = DEFAULT_STATE, action): IConferenceState => {
         switch (action.type) {
-        case AUTH_STATUS_CHANGED:
-            return _authStatusChanged(state, action);
+            case AUTH_STATUS_CHANGED:
+                return _authStatusChanged(state, action);
 
-        case CONFERENCE_FAILED:
-            return _conferenceFailed(state, action);
+            case CONFERENCE_FAILED:
+                return _conferenceFailed(state, action);
 
-        case CONFERENCE_JOINED:
-            return _conferenceJoined(state, action);
+            case CONFERENCE_JOINED:
+                return _conferenceJoined(state, action);
 
-        case CONFERENCE_SUBJECT_CHANGED:
-            return set(state, 'subject', action.subject);
+            case CONFERENCE_SUBJECT_CHANGED:
+                return set(state, "subject", action.subject);
 
-        case CONFERENCE_LOCAL_SUBJECT_CHANGED:
-            return set(state, 'localSubject', action.localSubject);
+            case CONFERENCE_LOCAL_SUBJECT_CHANGED:
+                return set(state, "localSubject", action.localSubject);
 
-        case CONFERENCE_PROPERTIES_CHANGED:
-            return _conferencePropertiesChanged(state, action);
+            case CONFERENCE_PROPERTIES_CHANGED:
+                return _conferencePropertiesChanged(state, action);
 
-        case CONFERENCE_TIMESTAMP_CHANGED:
-            return set(state, 'conferenceTimestamp', action.conferenceTimestamp);
+            case CONFERENCE_TIMESTAMP_CHANGED:
+                return set(state, "conferenceTimestamp", action.conferenceTimestamp);
 
-        case CONFERENCE_LEFT:
-        case CONFERENCE_WILL_LEAVE:
-            return _conferenceLeftOrWillLeave(state, action);
+            case CONFERENCE_LEFT:
+            case CONFERENCE_WILL_LEAVE:
+                return _conferenceLeftOrWillLeave(state, action);
 
-        case CONFERENCE_WILL_JOIN:
-            return _conferenceWillJoin(state, action);
+            case CONFERENCE_WILL_JOIN:
+                return _conferenceWillJoin(state, action);
 
-        case CONNECTION_WILL_CONNECT:
-            return set(state, 'authRequired', undefined);
+            case CONNECTION_WILL_CONNECT:
+                return set(state, "authRequired", undefined);
 
-        case DATA_CHANNEL_CLOSED:
-            return set(state, 'dataChannelOpen', false);
+            case DATA_CHANNEL_CLOSED:
+                return set(state, "dataChannelOpen", false);
 
-        case DATA_CHANNEL_OPENED:
-            return set(state, 'dataChannelOpen', true);
+            case DATA_CHANNEL_OPENED:
+                return set(state, "dataChannelOpen", true);
 
-        case LOCK_STATE_CHANGED:
-            return _lockStateChanged(state, action);
+            case LOCK_STATE_CHANGED:
+                return _lockStateChanged(state, action);
 
-        case P2P_STATUS_CHANGED:
-            return _p2pStatusChanged(state, action);
+            case P2P_STATUS_CHANGED:
+                return _p2pStatusChanged(state, action);
 
-        case SET_ASSUMED_BANDWIDTH_BPS: {
-            const assumedBandwidthBps = action.assumedBandwidthBps >= 0
-                ? Number(action.assumedBandwidthBps)
-                : undefined;
+            case SET_ASSUMED_BANDWIDTH_BPS: {
+                const assumedBandwidthBps =
+                    action.assumedBandwidthBps >= 0 ? Number(action.assumedBandwidthBps) : undefined;
 
-            return set(state, 'assumedBandwidthBps', assumedBandwidthBps);
-        }
-        case SET_FOLLOW_ME:
-            return set(state, 'followMeEnabled', action.enabled);
+                return set(state, "assumedBandwidthBps", assumedBandwidthBps);
+            }
+            case SET_FOLLOW_ME:
+                return set(state, "followMeEnabled", action.enabled);
 
-        case SET_FOLLOW_ME_RECORDER:
-            return { ...state,
-                followMeRecorderEnabled: action.enabled,
-                followMeEnabled: action.enabled
-            };
+            case SET_FOLLOW_ME_RECORDER:
+                return { ...state, followMeRecorderEnabled: action.enabled, followMeEnabled: action.enabled };
 
-        case SET_START_REACTIONS_MUTED:
-            return set(state, 'startReactionsMuted', action.muted);
+            case SET_START_REACTIONS_MUTED:
+                return set(state, "startReactionsMuted", action.muted);
 
-        case SET_LOCATION_URL:
-            return set(state, 'room', undefined);
+            case SET_LOCATION_URL:
+                return set(state, "room", undefined);
 
-        case SET_OBFUSCATED_ROOM:
-            return { ...state,
-                obfuscatedRoom: action.obfuscatedRoom,
-                obfuscatedRoomSource: action.obfuscatedRoomSource
-            };
+            case SET_OBFUSCATED_ROOM:
+                return {
+                    ...state,
+                    obfuscatedRoom: action.obfuscatedRoom,
+                    obfuscatedRoomSource: action.obfuscatedRoomSource,
+                };
 
-        case SET_PASSWORD:
-            return _setPassword(state, action);
+            case SET_PASSWORD:
+                return _setPassword(state, action);
 
-        case SET_PENDING_SUBJECT_CHANGE:
-            return set(state, 'pendingSubjectChange', action.subject);
+            case SET_PENDING_SUBJECT_CHANGE:
+                return set(state, "pendingSubjectChange", action.subject);
 
-        case SET_ROOM:
-            return _setRoom(state, action);
+            case SET_ROOM:
+                return _setRoom(state, action);
 
-        case SET_START_MUTED_POLICY:
-            return {
-                ...state,
-                startAudioMutedPolicy: action.startAudioMutedPolicy,
-                startVideoMutedPolicy: action.startVideoMutedPolicy
-            };
+            case SET_START_MUTED_POLICY:
+                return {
+                    ...state,
+                    startAudioMutedPolicy: action.startAudioMutedPolicy,
+                    startVideoMutedPolicy: action.startVideoMutedPolicy,
+                };
 
-        case UPDATE_CONFERENCE_METADATA:
-            return {
-                ...state,
-                metadata: action.metadata
-            };
+            case UPDATE_CONFERENCE_METADATA:
+                return {
+                    ...state,
+                    metadata: action.metadata,
+                };
 
-        case SET_CONFIG:
-            return _setConfig(state, action);
+            case SET_CREATOR_UUID:
+                return {
+                    ...state,
+                    creatorUuid: action.creatorUuid,
+                };
+
+            case SET_COHOSTS_UUIDS:
+                return {
+                    ...state,
+                    cohostsUuids: action.cohostsUuids,
+                };
+
+            // Removed combined setter; using separate fields only
+
+            case SET_CONFIG:
+                return _setConfig(state, action);
         }
 
         return state;
-    });
+    }
+);
 
 /**
  * Processes subject and local subject of the conference based on the new config.
@@ -332,14 +353,14 @@ ReducerRegistry.register<IConferenceState>('features/base/conference',
  * @private
  * @returns {Object} The new state after the reduction of the specified action.
  */
-function _setConfig(state: IConferenceState, { config }: { config: IConfig; }) {
+function _setConfig(state: IConferenceState, { config }: { config: IConfig }) {
     const { localSubject, subject } = config;
 
     return {
         ...state,
         localSubject,
         pendingSubjectChange: subject,
-        subject: undefined
+        subject: undefined,
     };
 }
 
@@ -353,11 +374,13 @@ function _setConfig(state: IConferenceState, { config }: { config: IConfig; }) {
  * @returns {Object} The new state of the feature base/conference after the
  * reduction of the specified action.
  */
-function _authStatusChanged(state: IConferenceState,
-        { authEnabled, authLogin }: { authEnabled: boolean; authLogin: string; }) {
+function _authStatusChanged(
+    state: IConferenceState,
+    { authEnabled, authLogin }: { authEnabled: boolean; authLogin: string }
+) {
     return assign(state, {
         authEnabled,
-        authLogin
+        authLogin,
     });
 }
 
@@ -371,8 +394,16 @@ function _authStatusChanged(state: IConferenceState,
  * @returns {Object} The new state of the feature base/conference after the
  * reduction of the specified action.
  */
-function _conferenceFailed(state: IConferenceState, { conference, error }: {
-    conference: IJitsiConference; error: IConferenceFailedError; }) {
+function _conferenceFailed(
+    state: IConferenceState,
+    {
+        conference,
+        error,
+    }: {
+        conference: IJitsiConference;
+        error: IConferenceFailedError;
+    }
+) {
     // The current (similar to getCurrentConference in
     // base/conference/functions.any.js) conference which is joining or joined:
     const conference_ = state.conference || state.joining;
@@ -388,35 +419,35 @@ function _conferenceFailed(state: IConferenceState, { conference, error }: {
     let lobbyError;
 
     switch (error.name) {
-    case JitsiConferenceErrors.AUTHENTICATION_REQUIRED:
-        authRequired = conference;
-        break;
+        case JitsiConferenceErrors.AUTHENTICATION_REQUIRED:
+            authRequired = conference;
+            break;
 
-    /**
-     * Access denied while waiting in the lobby.
-     * A conference error when we tried to join into a room with no display name when lobby is enabled in the room.
-     */
-    case JitsiConferenceErrors.CONFERENCE_ACCESS_DENIED:
-    case JitsiConferenceErrors.DISPLAY_NAME_REQUIRED: {
-        lobbyError = true;
+        /**
+         * Access denied while waiting in the lobby.
+         * A conference error when we tried to join into a room with no display name when lobby is enabled in the room.
+         */
+        case JitsiConferenceErrors.CONFERENCE_ACCESS_DENIED:
+        case JitsiConferenceErrors.DISPLAY_NAME_REQUIRED: {
+            lobbyError = true;
 
-        break;
-    }
+            break;
+        }
 
-    case JitsiConferenceErrors.MEMBERS_ONLY_ERROR: {
-        membersOnly = conference;
+        case JitsiConferenceErrors.MEMBERS_ONLY_ERROR: {
+            membersOnly = conference;
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const [ _lobbyJid, _lobbyWaitingForHost ] = error.params;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const [_lobbyJid, _lobbyWaitingForHost] = error.params;
 
-        lobbyWaitingForHost = _lobbyWaitingForHost;
+            lobbyWaitingForHost = _lobbyWaitingForHost;
 
-        break;
-    }
+            break;
+        }
 
-    case JitsiConferenceErrors.PASSWORD_REQUIRED:
-        passwordRequired = conference;
-        break;
+        case JitsiConferenceErrors.PASSWORD_REQUIRED:
+            passwordRequired = conference;
+            break;
     }
 
     return assign(state, {
@@ -445,7 +476,7 @@ function _conferenceFailed(state: IConferenceState, { conference, error }: {
          *
          * @type {JitsiConference}
          */
-        passwordRequired
+        passwordRequired,
     });
 }
 
@@ -459,7 +490,7 @@ function _conferenceFailed(state: IConferenceState, { conference, error }: {
  * @returns {Object} The new state of the feature base/conference after the
  * reduction of the specified action.
  */
-function _conferenceJoined(state: IConferenceState, { conference }: { conference: IJitsiConference; }) {
+function _conferenceJoined(state: IConferenceState, { conference }: { conference: IJitsiConference }) {
     // FIXME The indicator which determines whether a JitsiConference is locked
     // i.e. password-protected is private to lib-jitsi-meet. However, the
     // library does not fire LOCK_STATE_CHANGED upon joining a JitsiConference
@@ -493,7 +524,7 @@ function _conferenceJoined(state: IConferenceState, { conference }: { conference
          * @type {boolean}
          */
         locked,
-        passwordRequired: undefined
+        passwordRequired: undefined,
     });
 }
 
@@ -508,8 +539,10 @@ function _conferenceJoined(state: IConferenceState, { conference }: { conference
  * @returns {Object} The next/new state of the feature base/conference after the
  * reduction of the specified action.
  */
-function _conferenceLeftOrWillLeave(state: IConferenceState, { conference, type }:
-{ conference: IJitsiConference; type: string; }) {
+function _conferenceLeftOrWillLeave(
+    state: IConferenceState,
+    { conference, type }: { conference: IJitsiConference; type: string }
+) {
     const nextState = { ...state };
 
     // The redux action CONFERENCE_LEFT is the last time that we should be
@@ -525,13 +558,13 @@ function _conferenceLeftOrWillLeave(state: IConferenceState, { conference, type 
             nextState[p as keyof IConferenceState] = undefined;
 
             switch (p) {
-            case 'conference':
-            case 'passwordRequired':
-                // XXX Clear/unset locked & password for a conference which has
-                // been LOCKED_LOCALLY or LOCKED_REMOTELY.
-                delete nextState.locked;
-                delete nextState.password;
-                break;
+                case "conference":
+                case "passwordRequired":
+                    // XXX Clear/unset locked & password for a conference which has
+                    // been LOCKED_LOCALLY or LOCKED_REMOTELY.
+                    delete nextState.locked;
+                    delete nextState.password;
+                    break;
             }
         }
     }
@@ -563,10 +596,10 @@ function _conferenceLeftOrWillLeave(state: IConferenceState, { conference, type 
  * @returns {Object} The new state of the feature base/conference after the
  * reduction of the specified action.
  */
-function _conferencePropertiesChanged(state: IConferenceState, { properties }: { properties: Object; }) {
+function _conferencePropertiesChanged(state: IConferenceState, { properties }: { properties: Object }) {
     if (!equals(state.properties, properties)) {
         return assign(state, {
-            properties
+            properties,
         });
     }
 
@@ -583,10 +616,10 @@ function _conferencePropertiesChanged(state: IConferenceState, { properties }: {
  * @returns {Object} The new state of the feature base/conference after the
  * reduction of the specified action.
  */
-function _conferenceWillJoin(state: IConferenceState, { conference }: { conference: IJitsiConference; }) {
+function _conferenceWillJoin(state: IConferenceState, { conference }: { conference: IJitsiConference }) {
     return assign(state, {
         error: undefined,
-        joining: conference
+        joining: conference,
     });
 }
 
@@ -600,14 +633,14 @@ function _conferenceWillJoin(state: IConferenceState, { conference }: { conferen
  * @returns {Object} The new state of the feature base/conference after the
  * reduction of the specified action.
  */
-function _lockStateChanged(state: IConferenceState, { conference, locked }: { conference: Object; locked: boolean; }) {
+function _lockStateChanged(state: IConferenceState, { conference, locked }: { conference: Object; locked: boolean }) {
     if (state.conference !== conference) {
         return state;
     }
 
     return assign(state, {
         locked: locked ? state.locked || LOCKED_REMOTELY : undefined,
-        password: locked ? state.password : undefined
+        password: locked ? state.password : undefined,
     });
 }
 
@@ -622,7 +655,7 @@ function _lockStateChanged(state: IConferenceState, { conference, locked }: { co
  * reduction of the specified action.
  */
 function _p2pStatusChanged(state: IConferenceState, action: AnyAction) {
-    return set(state, 'p2p', action.p2p);
+    return set(state, "p2p", action.p2p);
 }
 
 /**
@@ -634,40 +667,50 @@ function _p2pStatusChanged(state: IConferenceState, action: AnyAction) {
  * @returns {Object} The new state of the feature base/conference after the
  * reduction of the specified action.
  */
-function _setPassword(state: IConferenceState, { conference, method, password }: {
-    conference: IJitsiConference; method: Object; password: string; }) {
+function _setPassword(
+    state: IConferenceState,
+    {
+        conference,
+        method,
+        password,
+    }: {
+        conference: IJitsiConference;
+        method: Object;
+        password: string;
+    }
+) {
     switch (method) {
-    case conference.join:
-        return assign(state, {
-            // 1. The JitsiConference which transitions away from
-            // passwordRequired MUST remain in the redux state
-            // features/base/conference until it transitions into
-            // conference; otherwise, there is a span of time during which
-            // the redux state does not even know that there is a
-            // JitsiConference whatsoever.
-            //
-            // 2. The redux action setPassword will attempt to join the
-            // JitsiConference so joining is an appropriate transitional
-            // redux state.
-            //
-            // 3. The redux action setPassword will perform the same check
-            // before it proceeds with the re-join.
-            joining: state.conference ? state.joining : conference,
-            locked: LOCKED_REMOTELY,
+        case conference.join:
+            return assign(state, {
+                // 1. The JitsiConference which transitions away from
+                // passwordRequired MUST remain in the redux state
+                // features/base/conference until it transitions into
+                // conference; otherwise, there is a span of time during which
+                // the redux state does not even know that there is a
+                // JitsiConference whatsoever.
+                //
+                // 2. The redux action setPassword will attempt to join the
+                // JitsiConference so joining is an appropriate transitional
+                // redux state.
+                //
+                // 3. The redux action setPassword will perform the same check
+                // before it proceeds with the re-join.
+                joining: state.conference ? state.joining : conference,
+                locked: LOCKED_REMOTELY,
 
-            /**
-             * The password with which the conference is to be joined.
-             *
-             * @type {string}
-             */
-            password
-        });
+                /**
+                 * The password with which the conference is to be joined.
+                 *
+                 * @type {string}
+                 */
+                password,
+            });
 
-    case conference.lock:
-        return assign(state, {
-            locked: password ? LOCKED_LOCALLY : undefined,
-            password
-        });
+        case conference.lock:
+            return assign(state, {
+                locked: password ? LOCKED_LOCALLY : undefined,
+                password,
+            });
     }
 
     return state;
@@ -699,7 +742,6 @@ function _setRoom(state: IConferenceState, action: AnyAction) {
      */
     return assign(state, {
         error: undefined,
-        room
+        room,
     });
 }
-

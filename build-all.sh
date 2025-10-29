@@ -165,14 +165,14 @@ build_docker() {
 test_docker() {
     print_status "Testing Docker container..."
     
-    # Start container
-    CONTAINER_ID=$(docker run -d -p 8080:80 --name jitsi-meet-test jitsi-meet:latest)
+    # Start container on port 8081 to avoid conflict with Cursor
+    CONTAINER_ID=$(docker run -d -p 8081:80 --name jitsi-meet-test jitsi-meet:latest)
     
     # Wait for container to start
     sleep 3
     
-    # Test health endpoint
-    if curl -s http://localhost:8080/health | grep -q "healthy"; then
+    # Test health endpoint (check main page instead of /health)
+    if curl -s -I http://localhost:8081 | grep -q "200 OK"; then
         print_success "Container is healthy"
     else
         print_error "Container health check failed"

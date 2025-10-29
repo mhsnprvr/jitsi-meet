@@ -20,6 +20,9 @@ COPY interface_config.js /usr/share/nginx/html/
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
+# Expose VERSION to be fetched by the client
+COPY VERSION /usr/share/nginx/html/VERSION
+
 # Expose port
 EXPOSE 80
 

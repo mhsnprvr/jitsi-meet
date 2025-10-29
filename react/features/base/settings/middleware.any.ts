@@ -1,15 +1,16 @@
-import { escape } from 'lodash-es';
-import { AnyAction } from 'redux';
+import { escape } from "lodash-es";
+import { AnyAction } from "redux";
 
-import { IStore } from '../../app/types';
-import { SET_LOCATION_URL } from '../connection/actionTypes';
-import { participantUpdated } from '../participants/actions';
-import { getLocalParticipant } from '../participants/functions';
-import MiddlewareRegistry from '../redux/MiddlewareRegistry';
-import { parseURLParams } from '../util/parseURLParams';
+import { IStore } from "../../app/types";
+import { setCohostsUuids, setCreatorUuid } from "../conference/actions-custom";
+import { SET_LOCATION_URL } from "../connection/actionTypes";
+import { participantUpdated } from "../participants/actions";
+import { getLocalParticipant } from "../participants/functions";
+import MiddlewareRegistry from "../redux/MiddlewareRegistry";
+import { parseURLParams } from "../util/parseURLParams";
 
-import { SETTINGS_UPDATED } from './actionTypes';
-import { updateSettings } from './actions';
+import { SETTINGS_UPDATED } from "./actionTypes";
+import { updateSettings } from "./actions";
 
 /**
  * The middleware of the feature base/settings. Distributes changes to the state
@@ -19,16 +20,16 @@ import { updateSettings } from './actions';
  * @param {Store} store - The redux store.
  * @returns {Function}
  */
-MiddlewareRegistry.register(store => next => action => {
+MiddlewareRegistry.register((store) => (next) => (action) => {
     const result = next(action);
 
     switch (action.type) {
-    case SETTINGS_UPDATED:
-        _updateLocalParticipant(store, action);
-        break;
-    case SET_LOCATION_URL:
-        _updateLocalParticipantFromUrl(store);
-        break;
+        case SETTINGS_UPDATED:
+            _updateLocalParticipant(store, action);
+            break;
+        case SET_LOCATION_URL:
+            _updateLocalParticipantFromUrl(store);
+            break;
     }
 
     return result;
@@ -44,8 +45,8 @@ MiddlewareRegistry.register(store => next => action => {
  */
 function _mapSettingsFieldToParticipant(settingsField: string) {
     switch (settingsField) {
-    case 'displayName':
-        return 'name';
+        case "displayName":
+            return "name";
     }
 
     return settingsField;
@@ -63,55 +64,72 @@ function _updateLocalParticipant({ dispatch, getState }: IStore, action: AnyActi
     const { settings } = action;
     const localParticipant = getLocalParticipant(getState());
     const newLocalParticipant = {
-        ...localParticipant
+        ...localParticipant,
     };
 
     for (const key in settings) {
         if (settings.hasOwnProperty(key)) {
-            newLocalParticipant[_mapSettingsFieldToParticipant(key) as keyof typeof newLocalParticipant]
-                = settings[key];
+            newLocalParticipant[_mapSettingsFieldToParticipant(key) as keyof typeof newLocalParticipant] =
+                settings[key];
         }
     }
 
-    dispatch(participantUpdated({
-        ...newLocalParticipant,
-        id: newLocalParticipant.id ?? ''
-    }));
+    dispatch(
+        participantUpdated({
+            ...newLocalParticipant,
+            id: newLocalParticipant.id ?? "",
+        })
+    );
 }
 
-
 /**
- * Returns the userInfo set in the URL.
+ * Returns the userInfo set in the URL and processes custom conference metadata.
  *
  * @param {Store} store - The redux store.
  * @private
  * @returns {void}
  */
 function _updateLocalParticipantFromUrl({ dispatch, getState }: IStore) {
-    const urlParams
-        = parseURLParams(getState()['features/base/connection'].locationURL ?? '');
-    const urlEmail = urlParams['userInfo.email'];
-    const urlDisplayName = urlParams['userInfo.displayName'];
+    const urlParams = parseURLParams(getState()["features/base/connection"].locationURL ?? "");
+    const urlEmail = urlParams["userInfo.email"];
+    const urlDisplayName = urlParams["userInfo.displayName"];
+    const urlCreatorUuid = urlParams["creatorUuid"];
+    const urlCohostsUuids = urlParams["cohostsUuids"];
 
-    if (!urlEmail && !urlDisplayName) {
-        return;
+    // Process userInfo if present
+    if (urlEmail || urlDisplayName) {
+        const localParticipant = getLocalParticipant(getState());
+
+        if (localParticipant) {
+            const displayName = escape(urlDisplayName);
+            const email = escape(urlEmail);
+
+            dispatch(
+                participantUpdated({
+                    ...localParticipant,
+                    email,
+                    name: displayName,
+                })
+            );
+
+            dispatch(
+                updateSettings({
+                    displayName,
+                    email,
+                })
+            );
+        }
     }
 
-    const localParticipant = getLocalParticipant(getState());
+    // Process creatorUuid if present
+    if (urlCreatorUuid) {
+        dispatch(setCreatorUuid(urlCreatorUuid));
+    }
 
-    if (localParticipant) {
-        const displayName = escape(urlDisplayName);
-        const email = escape(urlEmail);
-
-        dispatch(participantUpdated({
-            ...localParticipant,
-            email,
-            name: displayName
-        }));
-
-        dispatch(updateSettings({
-            displayName,
-            email
-        }));
+    // Process cohostsUuids if present
+    if (urlCohostsUuids) {
+        // Ensure it's an array
+        const cohostsArray = Array.isArray(urlCohostsUuids) ? urlCohostsUuids : [urlCohostsUuids];
+        dispatch(setCohostsUuids(cohostsArray));
     }
 }

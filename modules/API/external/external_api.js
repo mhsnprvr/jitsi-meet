@@ -263,6 +263,8 @@ export default class JitsiMeetExternalAPI extends EventEmitter {
      * THIS IS EXPERIMENTAL.
      * @param {string}  [options.release] - The key used for specifying release if enabled on the backend.
      * @param {string} [options.sandbox] - Sandbox directive for the created iframe, if desired.
+     * @param {string} [options.creatorUuid] - The UUID of the conference creator.
+     * @param {string[]} [options.cohostsUuids] - Array of UUIDs for cohosts.
      */
     constructor(domain, options = {}) {
         super();
@@ -282,7 +284,9 @@ export default class JitsiMeetExternalAPI extends EventEmitter {
             userInfo,
             e2eeKey,
             release,
-            sandbox
+            sandbox,
+            creatorUuid,
+            cohostsUuids
         } = options;
         const localStorageContent = jitsiLocalStorage.getItem('jitsiLocalStorage');
 
@@ -297,12 +301,15 @@ export default class JitsiMeetExternalAPI extends EventEmitter {
             roomName,
             devices,
             userInfo,
+            creatorUuid,
+            cohostsUuids,
             appData: {
                 localStorageContent
             },
             release,
             url: `https://${domain}/#jitsi_meet_external_api_id=${id}`
         });
+
 
         this._createIFrame(height, width, sandbox);
 

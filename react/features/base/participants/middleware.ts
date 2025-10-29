@@ -72,15 +72,12 @@ import {
     raiseHand,
     raiseHandUpdateQueue,
     setLoadableAvatarUrl,
-    setLocalParticipantCoHost,
-    setLocalParticipantCreator,
 } from "./actions";
 import {
     LOCAL_PARTICIPANT_DEFAULT_ID,
     LOWER_HAND_AUDIO_LEVEL,
     PARTICIPANT_JOINED_SOUND_ID,
     PARTICIPANT_LEFT_SOUND_ID,
-    PARTICIPANT_ROLE,
 } from "./constants";
 import {
     getDominantSpeakerParticipant,
@@ -123,7 +120,13 @@ MiddlewareRegistry.register((store) => (next) => (action) => {
             return _localParticipantLeft(store, next, action);
 
         case CONFERENCE_WILL_JOIN:
-            logger.info("CONFERENCE_WILL_JOIN", action);
+            logger.info("CONFERENCE_WILL_JOIN::", action);
+            const roomName = getRoomName(store.getState());
+            const outpostUuid = roomName;
+            console.log("outpostUuid", outpostUuid);
+            const settings = store.getState()["features/base/settings"];
+            const myUuid = transformEmailLikeToId(settings.email as string);
+            console.log("myUuid", myUuid);
             store.dispatch(localParticipantIdChanged(action.conference.myUserId()));
 
             break;
@@ -257,42 +260,10 @@ MiddlewareRegistry.register((store) => (next) => (action) => {
             const state = store.getState();
             const { startSilent } = state["features/base/config"];
 
-            const roomName = getRoomName(state);
-            const settings = state["features/base/settings"];
-            logger.info("CONFERENCE_JOINED roomName", roomName);
-            logger.info("CONFERENCE_JOINED settings", settings);
-            if (roomName) {
-                // Call async function to check user role
-                checkUserRole(roomName, settings.email)
-                    .then(({ isCreator, isCoHost }) => {
-                        // Set the creator and cohost status
-                        store.dispatch(setLocalParticipantCreator(isCreator));
-                        store.dispatch(setLocalParticipantCoHost(isCoHost));
-                        if (isCreator || isCoHost) {
-                            const localId = getLocalParticipant(store.getState())?.id ?? "";
-                            store.dispatch(
-                                participantUpdated({
-                                    id: localId,
-                                    local: true,
-                                    role: PARTICIPANT_ROLE.MODERATOR,
-                                })
-                            );
-                        }
-                        logger.info("CONFERENCE_JOINED isCreator", isCreator);
-                        logger.info("CONFERENCE_JOINED isCoHost", isCoHost);
-                        logger.info("CONFERENCE_JOINED store.getState()", store.getState());
-                    })
-                    .catch((error) => {
-                        logger.error("CONFERENCE_JOINED Error checking user role:", error);
-                        // Set to false on error
-                        store.dispatch(setLocalParticipantCreator(false));
-                        store.dispatch(setLocalParticipantCoHost(false));
-                    });
-            } else {
-                // No room name, set to false
-                store.dispatch(setLocalParticipantCreator(false));
-                store.dispatch(setLocalParticipantCoHost(false));
-            }
+            fetch("/VERSION")
+                .then((res) => res.text())
+                .then((v) => console.log(`[Jitsi Web Version] ${v.trim()}`))
+                .catch(() => {});
 
             if (startSilent) {
                 const localId = getLocalParticipant(store.getState())?.id;

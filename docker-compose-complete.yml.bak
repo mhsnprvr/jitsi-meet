@@ -12,7 +12,7 @@ services:
         ports:
             - "8000:80"
         environment:
-            - PUBLIC_URL=https://meet.avaxcoolyeti.com
+            - PUBLIC_URL=http://localhost:8000
         networks:
             - meet.avaxcoolyeti.com
         depends_on:

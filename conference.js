@@ -7,6 +7,7 @@ import { ENDPOINT_TEXT_MESSAGE_NAME } from './modules/API/constants';
 import mediaDeviceHelper from './modules/devices/mediaDeviceHelper';
 import Recorder from './modules/recorder/Recorder';
 import { createTaskQueue } from './modules/util/helpers';
+import { transformEmailLikeToId } from './react/additionalUtils/email_uuil';
 import {
     createDeviceChangedEvent,
     createScreenSharingEvent,
@@ -53,7 +54,9 @@ import {
     sendLocalParticipant,
     updateTrackMuteState
 } from './react/features/base/conference/functions';
+import { getCohostsUuids, getCreatorUuid } from './react/features/base/conference/selectors-custom';
 import { getReplaceParticipant, getSsrcRewritingFeatureFlag } from './react/features/base/config/functions';
+import getRoomName from './react/features/base/config/getRoomName';
 import { connect } from './react/features/base/connection/actions.web';
 import {
     checkAndNotifyForNewDevice,
@@ -112,7 +115,8 @@ import {
     getLocalParticipant,
     getNormalizedDisplayName,
     getParticipantByIdOrUndefined,
-    getVirtualScreenshareParticipantByOwnerId
+    getVirtualScreenshareParticipantByOwnerId,
+    isLocalParticipantModerator
 } from './react/features/base/participants/functions';
 import { updateSettings } from './react/features/base/settings/actions';
 import {
@@ -1367,6 +1371,8 @@ export default {
                 return;
             }
 
+   
+
             // The logic shared between RN and web.
             commonUserJoinedHandling(APP.store, room, user);
 
@@ -1377,6 +1383,29 @@ export default {
             APP.store.dispatch(updateRemoteParticipantFeatures(user));
             logger.log(`USER ${id} connected:`, user);
             APP.UI.addUser(user);
+
+
+            const state = APP.store.getState();
+            const roomName = getRoomName(state);
+            const settings = state["features/base/settings"];
+            const outpostUuid = roomName;
+            const myUuid = transformEmailLikeToId(settings.email);
+             const creatorUuid = getCreatorUuid(state);
+             const cohostsUuids = getCohostsUuids(state);
+             console.log("myUuid:::", myUuid);
+             console.log("creatorUuid:::", creatorUuid);
+             console.log("cohostsUuids:::", cohostsUuids);
+             console.log("outpostUuid:::", outpostUuid);
+             const isModerator = isLocalParticipantModerator(state);
+             console.log("isModerator:::", isModerator);
+             if (isModerator) {
+               const participants=room.getParticipants();
+               console.log("participants:::", participants);
+             }
+
+            console.log("user:::", user);
+
+
         });
 
         room.on(JitsiConferenceEvents.USER_LEFT, (id, user) => {
@@ -1407,12 +1436,11 @@ export default {
                 if (role === 'moderator') {
                     APP.store.dispatch(maybeSetLobbyChatMessageListener());
                 }
-
                 APP.store.dispatch(localParticipantRoleChanged(role));
             } else {
                 APP.store.dispatch(participantRoleChanged(id, role));
             }
-        });
+         });
 
         room.on(JitsiConferenceEvents.TRACK_ADDED, track => {
             if (!track || track.isLocal()) {

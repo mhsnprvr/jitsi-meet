@@ -6,6 +6,9 @@ export function transformIdToEmailLike(id: string): string {
 
 // transform 054dfc78c17449dca6200f0da86d0400@gmail.com to 054dfc78-c174-49dc-a620-0f0da86d0400
 export function transformEmailLikeToId(email: string): string {
+    if (!email || typeof email !== "string" || !email.includes("@")) {
+        return "undefined";
+    }
     const parts = email.split("@");
     const id = parts[0];
     const idParts = id.split("");
