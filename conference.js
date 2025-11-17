@@ -110,9 +110,10 @@ import {
     participantSourcesUpdated,
     participantUpdated,
     screenshareParticipantDisplayNameChanged,
+    setLocalParticipantCoHost,
+    setLocalParticipantCreator,
     updateRemoteParticipantFeatures
 } from './react/features/base/participants/actions';
-import { PARTICIPANT_ROLE } from './react/features/base/participants/constants';
 import {
     getLocalParticipant,
     getNormalizedDisplayName,
@@ -1391,16 +1392,14 @@ export default {
             const settings = state["features/base/settings"];
             const outpostUuid = roomName;
             const myUuid = transformEmailLikeToId(settings.email);
-             const creatorUuid = getCreatorUuid(state).replaceAll('"', '');
-             const cohostsUuids = getCohostsUuids(state);
-             const iAmModerator = isLocalParticipantModerator(state);
-             const iShouldNotBeModerator=myUuid!==creatorUuid && !cohostsUuids.includes(myUuid);
-             
+            const creatorUuid = getCreatorUuid(state).replaceAll('"', '');
+            const cohostsUuids = getCohostsUuids(state);
+            const iAmModerator = isLocalParticipantModerator(state);
+            const iShouldNotBeModerator=myUuid!==creatorUuid && !cohostsUuids.includes(myUuid);
+            
              // If I'm moderator but shouldn't be, change my role to participant (UI only)
-     
-             
-             if (iAmModerator) {
-               setTimeout(() => {
+            if (iAmModerator) {
+            setTimeout(() => {
                 const freshState = APP.store.getState();
                 // Get participant from Redux after participantJoined is dispatched
                 const participant = getParticipantByIdFromRedux(freshState, id);
@@ -1410,16 +1409,18 @@ export default {
                 if (userUuid === creatorUuid || (Array.isArray(cohostsUuids) && cohostsUuids.includes(userUuid))) {
                     // Grant moderator role to this participant
                     APP.store.dispatch(grantModerator(id));
+                    
                     console.log('Granted moderator to:', id, userUuid);
                     if (iShouldNotBeModerator) {
-                        APP.store.dispatch(localParticipantRoleChanged(PARTICIPANT_ROLE.PARTICIPANT));
+                        APP.store.dispatch(setLocalParticipantCoHost(false));
+                        APP.store.dispatch(setLocalParticipantCreator(false));
+                    }else{
+                        APP.store.dispatch(setLocalParticipantCoHost(true));
+                        APP.store.dispatch(setLocalParticipantCreator(true));
                     }
                 }
-            
-            }, 2000);
+            }, 5000);
             }
-            console.log("user:::", user);
-
         });
 
         room.on(JitsiConferenceEvents.USER_LEFT, (id, user) => {

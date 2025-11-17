@@ -337,6 +337,7 @@ MiddlewareRegistry.register((store) => (next) => (action) => {
             !isScreenShareParticipant(action.participant) &&
                 !isWhiteboardParticipant(action.participant) &&
                 _maybePlaySounds(store, action);
+            console.log("participant joined:::", action.participant);
 
             return _participantJoinedOrUpdated(store, next, action);
         }
