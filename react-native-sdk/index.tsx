@@ -52,6 +52,8 @@ interface IAppProps {
     style?: Object;
     token?: string;
     userInfo?: IUserInfo;
+    creatorUuid?: string;
+    cohostsUuids?: string[];
 }
 
 export interface JitsiRefProps {
@@ -76,7 +78,9 @@ export const JitsiMeeting = forwardRef<JitsiRefProps, IAppProps>((props, ref) =>
         serverURL,
         style,
         token,
-        userInfo
+        userInfo,
+        creatorUuid,
+        cohostsUuids
     } = props;
 
     // eslint-disable-next-line arrow-body-style
@@ -120,13 +124,17 @@ export const JitsiMeeting = forwardRef<JitsiRefProps, IAppProps>((props, ref) =>
             if (room.includes('://')) {
                 urlProps = {
                     ...urlObj,
-                    url: room
+                    url: room,
+                    creatorUuid,
+                    cohostsUuids
                 };
             } else {
                 urlProps = {
                     ...urlObj,
                     room,
-                    serverURL
+                    serverURL,
+                    creatorUuid,
+                    cohostsUuids
                 };
             }
 
