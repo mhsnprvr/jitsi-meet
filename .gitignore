@@ -118,3 +118,7 @@ react-native-sdk/sounds
 tests/.env
 test-results
 
+
+# Local build backups and docker config
+ios/sdk/out_prev_*/
+jitsi-docker/
