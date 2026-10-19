@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		08EDA8A4A6BDBB4DD76D1146 /* PodiumStageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F56565256A47F4B4C9A56FA /* PodiumStageView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0B412F181EDEC65D00B1A0A6 /* JitsiMeetView.h in Headers */ = {isa = PBXBuildFile; fileRef = 0B412F161EDEC65D00B1A0A6 /* JitsiMeetView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0B412F191EDEC65D00B1A0A6 /* JitsiMeetView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B412F171EDEC65D00B1A0A6 /* JitsiMeetView.m */; };
 		0B412F221EDEF6EA00B1A0A6 /* JitsiMeetViewDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 0B412F1B1EDEC80100B1A0A6 /* JitsiMeetViewDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -22,6 +23,7 @@
 		0BCA49601EC4B6C600B793EE /* POSIX.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BCA495D1EC4B6C600B793EE /* POSIX.m */; };
 		0BCA49611EC4B6C600B793EE /* Proximity.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BCA495E1EC4B6C600B793EE /* Proximity.m */; };
 		0BD906EA1EC0C00300C8C18E /* JitsiMeet.h in Headers */ = {isa = PBXBuildFile; fileRef = 0BD906E81EC0C00300C8C18E /* JitsiMeet.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		19F1088B8D89C7004A914CF2 /* PodiumStageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F56565256A47F4B4C9A56FA /* PodiumStageView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3453F4A32680898C4A40E821 /* libPods-JitsiMeetSDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 927ED7DF018DE5E12C4C3404 /* libPods-JitsiMeetSDK.a */; };
 		4E0EF63028CA2FB3005D1B03 /* JMCallKitEmitter.h in Headers */ = {isa = PBXBuildFile; fileRef = 4E0EF62E28CA2FB3005D1B03 /* JMCallKitEmitter.h */; };
 		4E0EF63128CA2FB3005D1B03 /* JMCallKitEmitter.h in Headers */ = {isa = PBXBuildFile; fileRef = 4E0EF62E28CA2FB3005D1B03 /* JMCallKitEmitter.h */; };
@@ -41,6 +43,7 @@
 		4E812F3A28F9A4ED0087ACC9 /* JitsiMeetView+Private.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E812F3628F9A4ED0087ACC9 /* JitsiMeetView+Private.m */; };
 		4ED4FFF32721B9B90074E620 /* JitsiAudioSession.h in Headers */ = {isa = PBXBuildFile; fileRef = 4ED4FFF12721B9B90074E620 /* JitsiAudioSession.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4ED4FFF42721B9B90074E620 /* JitsiAudioSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 4ED4FFF22721B9B90074E620 /* JitsiAudioSession.m */; };
+		59F72268323128E43E53EC60 /* PodiumStageView.m in Sources */ = {isa = PBXBuildFile; fileRef = B0F01C8E5E48CE6DC5E95FB0 /* PodiumStageView.m */; };
 		6F08DF7D4458EE3CF3F36F6D /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		9A8EE79C77C17743BB66E8BD /* libPods-JitsiMeetSDKLite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B46497DE9A95BDF5E312AF48 /* libPods-JitsiMeetSDKLite.a */; };
 		A4A934E9212F3ADB001E9388 /* Dropbox.m in Sources */ = {isa = PBXBuildFile; fileRef = A4A934E8212F3ADB001E9388 /* Dropbox.m */; };
@@ -109,6 +112,7 @@
 		DEFC743F21B178FA00E4DD96 /* LocaleDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = DEFC743D21B178FA00E4DD96 /* LocaleDetector.m */; };
 		DEFE535421FB1BF800011A3A /* JitsiMeet.m in Sources */ = {isa = PBXBuildFile; fileRef = DEFE535321FB1BF800011A3A /* JitsiMeet.m */; };
 		DEFE535621FB2E8300011A3A /* ReactUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = DEFE535521FB2E8300011A3A /* ReactUtils.m */; };
+		EF930E1CBA25F984660387D7 /* PodiumStageView.m in Sources */ = {isa = PBXBuildFile; fileRef = B0F01C8E5E48CE6DC5E95FB0 /* PodiumStageView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -143,6 +147,7 @@
 		4ED4FFF12721B9B90074E620 /* JitsiAudioSession.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JitsiAudioSession.h; sourceTree = "<group>"; };
 		4ED4FFF22721B9B90074E620 /* JitsiAudioSession.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JitsiAudioSession.m; sourceTree = "<group>"; };
 		4ED4FFF52721BAE10074E620 /* JitsiAudioSession+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "JitsiAudioSession+Private.h"; sourceTree = "<group>"; };
+		7F56565256A47F4B4C9A56FA /* PodiumStageView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PodiumStageView.h; sourceTree = "<group>"; };
 		86389F55993FAAF6AEB3FA3E /* Pods-JitsiMeetSDKLite.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JitsiMeetSDKLite.release.xcconfig"; path = "../Pods/Target Support Files/Pods-JitsiMeetSDKLite/Pods-JitsiMeetSDKLite.release.xcconfig"; sourceTree = "<group>"; };
 		891FE43DAD30BC8976683100 /* Pods-JitsiMeetSDK.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JitsiMeetSDK.release.xcconfig"; path = "../Pods/Target Support Files/Pods-JitsiMeetSDK/Pods-JitsiMeetSDK.release.xcconfig"; sourceTree = "<group>"; };
 		8F48C340DE0D91D1012976C5 /* Pods-JitsiMeetSDKLite.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JitsiMeetSDKLite.debug.xcconfig"; path = "../Pods/Target Support Files/Pods-JitsiMeetSDKLite/Pods-JitsiMeetSDKLite.debug.xcconfig"; sourceTree = "<group>"; };
@@ -151,6 +156,7 @@
 		9C77CA3CC919B081F1A52982 /* Pods-JitsiMeet.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JitsiMeet.release.xcconfig"; path = "../Pods/Target Support Files/Pods-JitsiMeet/Pods-JitsiMeet.release.xcconfig"; sourceTree = "<group>"; };
 		A4A934E8212F3ADB001E9388 /* Dropbox.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Dropbox.m; sourceTree = "<group>"; };
 		A4A934EB21349A06001E9388 /* Dropbox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Dropbox.h; sourceTree = "<group>"; };
+		B0F01C8E5E48CE6DC5E95FB0 /* PodiumStageView.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PodiumStageView.m; sourceTree = "<group>"; };
 		B46497DE9A95BDF5E312AF48 /* libPods-JitsiMeetSDKLite.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-JitsiMeetSDKLite.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C6245F5B2053091D0040BE68 /* image-resize@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "image-resize@2x.png"; path = "src/picture-in-picture/image-resize@2x.png"; sourceTree = "<group>"; };
 		C6245F5C2053091D0040BE68 /* image-resize@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "image-resize@3x.png"; path = "src/picture-in-picture/image-resize@3x.png"; sourceTree = "<group>"; };
@@ -289,6 +295,8 @@
 				4E51B76225E5345E0038575A /* ScheenshareEventEmiter.h */,
 				4E51B76325E5345E0038575A /* ScheenshareEventEmiter.m */,
 				DE9A0170289A9A9A00E41CBB /* Lite-Info.plist */,
+				7F56565256A47F4B4C9A56FA /* PodiumStageView.h */,
+				B0F01C8E5E48CE6DC5E95FB0 /* PodiumStageView.m */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -375,6 +383,7 @@
 				C81E9AB925AC5AD800B134D9 /* ExternalAPI.h in Headers */,
 				C8AFD27F2462C613000293D2 /* InfoPlistUtil.h in Headers */,
 				4E812F3328F9A4290087ACC9 /* JitsiMeetView+Private.h in Headers */,
+				19F1088B8D89C7004A914CF2 /* PodiumStageView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,6 +410,7 @@
 				DE9A0140289A9A9A00E41CBB /* ExternalAPI.h in Headers */,
 				DE9A0141289A9A9A00E41CBB /* InfoPlistUtil.h in Headers */,
 				4E812F3428F9A4290087ACC9 /* JitsiMeetView+Private.h in Headers */,
+				08EDA8A4A6BDBB4DD76D1146 /* PodiumStageView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -677,6 +687,7 @@
 				DE81A2D52316AC4D00AE1940 /* JitsiMeetLogger.m in Sources */,
 				0B412F191EDEC65D00B1A0A6 /* JitsiMeetView.m in Sources */,
 				DEFE535421FB1BF800011A3A /* JitsiMeet.m in Sources */,
+				59F72268323128E43E53EC60 /* PodiumStageView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -709,6 +720,7 @@
 				4E0EF63328CA2FB3005D1B03 /* JMCallKitEmitter.m in Sources */,
 				DE9A015E289A9A9A00E41CBB /* JitsiMeetView.m in Sources */,
 				DE9A015F289A9A9A00E41CBB /* JitsiMeet.m in Sources */,
+				EF930E1CBA25F984660387D7 /* PodiumStageView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

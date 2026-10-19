@@ -98,6 +98,8 @@ post_install do |installer|
       config.build_settings['SUPPORTS_MACCATALYST'] = 'NO'
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
       config.build_settings['OTHER_SWIFT_FLAGS'] = '$(inherited) -no-verify-emitted-module-interface'
+      # fmt 11.0's consteval format strings don't compile with Xcode 26+ clang in C++20 mode.
+      config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17' if target.name == 'fmt'
     end
   end
 
