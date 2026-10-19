@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		08EDA8A4A6BDBB4DD76D1146 /* PodiumStageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F56565256A47F4B4C9A56FA /* PodiumStageView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		A1B2C3D4E5F60718293A4B5E /* PodiumVideoTap.h in Headers */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* PodiumVideoTap.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		A1B2C3D4E5F60718293A4B5F /* PodiumVideoTap.h in Headers */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* PodiumVideoTap.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		A1B2C3D4E5F60718293A4B60 /* PodiumVideoTap.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5D /* PodiumVideoTap.m */; };
+		A1B2C3D4E5F60718293A4B61 /* PodiumVideoTap.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5D /* PodiumVideoTap.m */; };
 		0B412F181EDEC65D00B1A0A6 /* JitsiMeetView.h in Headers */ = {isa = PBXBuildFile; fileRef = 0B412F161EDEC65D00B1A0A6 /* JitsiMeetView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0B412F191EDEC65D00B1A0A6 /* JitsiMeetView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B412F171EDEC65D00B1A0A6 /* JitsiMeetView.m */; };
 		0B412F221EDEF6EA00B1A0A6 /* JitsiMeetViewDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 0B412F1B1EDEC80100B1A0A6 /* JitsiMeetViewDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -148,6 +152,8 @@
 		4ED4FFF22721B9B90074E620 /* JitsiAudioSession.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JitsiAudioSession.m; sourceTree = "<group>"; };
 		4ED4FFF52721BAE10074E620 /* JitsiAudioSession+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "JitsiAudioSession+Private.h"; sourceTree = "<group>"; };
 		7F56565256A47F4B4C9A56FA /* PodiumStageView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PodiumStageView.h; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* PodiumVideoTap.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PodiumVideoTap.h; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5D /* PodiumVideoTap.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PodiumVideoTap.m; sourceTree = "<group>"; };
 		86389F55993FAAF6AEB3FA3E /* Pods-JitsiMeetSDKLite.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JitsiMeetSDKLite.release.xcconfig"; path = "../Pods/Target Support Files/Pods-JitsiMeetSDKLite/Pods-JitsiMeetSDKLite.release.xcconfig"; sourceTree = "<group>"; };
 		891FE43DAD30BC8976683100 /* Pods-JitsiMeetSDK.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JitsiMeetSDK.release.xcconfig"; path = "../Pods/Target Support Files/Pods-JitsiMeetSDK/Pods-JitsiMeetSDK.release.xcconfig"; sourceTree = "<group>"; };
 		8F48C340DE0D91D1012976C5 /* Pods-JitsiMeetSDKLite.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JitsiMeetSDKLite.debug.xcconfig"; path = "../Pods/Target Support Files/Pods-JitsiMeetSDKLite/Pods-JitsiMeetSDKLite.debug.xcconfig"; sourceTree = "<group>"; };
@@ -297,6 +303,8 @@
 				DE9A0170289A9A9A00E41CBB /* Lite-Info.plist */,
 				7F56565256A47F4B4C9A56FA /* PodiumStageView.h */,
 				B0F01C8E5E48CE6DC5E95FB0 /* PodiumStageView.m */,
+				A1B2C3D4E5F60718293A4B5C /* PodiumVideoTap.h */,
+				A1B2C3D4E5F60718293A4B5D /* PodiumVideoTap.m */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -384,6 +392,7 @@
 				C8AFD27F2462C613000293D2 /* InfoPlistUtil.h in Headers */,
 				4E812F3328F9A4290087ACC9 /* JitsiMeetView+Private.h in Headers */,
 				19F1088B8D89C7004A914CF2 /* PodiumStageView.h in Headers */,
+				A1B2C3D4E5F60718293A4B5E /* PodiumVideoTap.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,6 +420,7 @@
 				DE9A0141289A9A9A00E41CBB /* InfoPlistUtil.h in Headers */,
 				4E812F3428F9A4290087ACC9 /* JitsiMeetView+Private.h in Headers */,
 				08EDA8A4A6BDBB4DD76D1146 /* PodiumStageView.h in Headers */,
+				A1B2C3D4E5F60718293A4B5F /* PodiumVideoTap.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -688,6 +698,7 @@
 				0B412F191EDEC65D00B1A0A6 /* JitsiMeetView.m in Sources */,
 				DEFE535421FB1BF800011A3A /* JitsiMeet.m in Sources */,
 				59F72268323128E43E53EC60 /* PodiumStageView.m in Sources */,
+				A1B2C3D4E5F60718293A4B60 /* PodiumVideoTap.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -721,6 +732,7 @@
 				DE9A015E289A9A9A00E41CBB /* JitsiMeetView.m in Sources */,
 				DE9A015F289A9A9A00E41CBB /* JitsiMeet.m in Sources */,
 				EF930E1CBA25F984660387D7 /* PodiumStageView.m in Sources */,
+				A1B2C3D4E5F60718293A4B61 /* PodiumVideoTap.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,4 +1,5 @@
 import { NativeEventEmitter, NativeModules } from 'react-native';
+import { RTCPeerConnection } from 'react-native-webrtc';
 
 import { IStore } from '../../app/types';
 import { APP_WILL_MOUNT, APP_WILL_UNMOUNT } from '../../base/app/actionTypes';
@@ -36,6 +37,19 @@ const PODIUM_EVENT = 'PODIUM_EVENT';
 
 const AUDIO_LEVELS_FLUSH_INTERVAL = 250;
 
+/**
+ * React Native's WebRTC has no RTCRtpReceiver.getSynchronizationSources() or AudioContext, so
+ * lib-jitsi-meet never fires TRACK_AUDIO_LEVEL_CHANGED on mobile. Levels are read from
+ * getStats() instead.
+ */
+const AUDIO_LEVELS_POLL_INTERVAL = 300;
+
+/**
+ * Stats audio levels are linear and quiet for normal speech; lib-jitsi-meet applies the same
+ * gain to remote levels before reporting them.
+ */
+const AUDIO_LEVEL_GAIN = 2.5;
+
 const externalAPIEnabled = isExternalAPIAvailable();
 
 const { ExternalAPI } = NativeModules;
@@ -43,6 +57,9 @@ const { ExternalAPI } = NativeModules;
 let eventEmitter: any;
 let audioLevels: { [participantId: string]: number; } = {};
 let audioLevelsTimer: ReturnType<typeof setInterval> | undefined;
+let audioLevelsPollTimer: ReturnType<typeof setInterval> | undefined;
+let audioLevelsPollInFlight = false;
+let localLevelProbe: { receiver: RTCPeerConnection; sender: RTCPeerConnection; track: any; } | undefined;
 
 /**
  * Sends a Podium event to the native side.
@@ -86,7 +103,8 @@ function snapshot(store: IStore) {
         participants,
         raisedHands: raisedHandsOf(state),
         screenShare: remoteScreenShareOf(state) || null,
-        localScreenShare: isLocalScreenSharing(state)
+        localScreenShare: isLocalScreenSharing(state),
+        localScreenShareTrackId: localScreenShareTrackIdOf(state) || null
     };
 }
 
@@ -132,6 +150,23 @@ function isLocalScreenSharing(state: any) {
     const track: any = getLocalDesktopTrack(state['features/base/tracks'] || []);
 
     return Boolean(track && !track.muted);
+}
+
+/**
+ * Returns the WebRTC id of the local screen share track while sharing, which the native side finds
+ * with {@code pcId} -1.
+ *
+ * @param {Object} state - The redux state.
+ * @returns {string|undefined}
+ */
+function localScreenShareTrackIdOf(state: any) {
+    const track: any = getLocalDesktopTrack(state['features/base/tracks'] || []);
+
+    if (!track || track.muted) {
+        return undefined;
+    }
+
+    return track.jitsiTrack?.getTrack?.()?.id;
 }
 
 /**
@@ -215,6 +250,168 @@ function startAudioLevels(store: IStore) {
         emit('audioLevels', { levels: audioLevels });
         audioLevels = {};
     }, AUDIO_LEVELS_FLUSH_INTERVAL);
+    audioLevelsPollTimer = setInterval(() => {
+        pollAudioLevels(conference);
+    }, AUDIO_LEVELS_POLL_INTERVAL);
+}
+
+/**
+ * Records a level for a participant, keeping the loudest value until the next flush.
+ *
+ * @param {string} participantId - The participant id.
+ * @param {number} rawLevel - Linear audio level from WebRTC stats, 0..1.
+ * @returns {void}
+ */
+function recordAudioLevel(participantId: string, rawLevel: number) {
+    const level = Math.round(Math.min(1, rawLevel * AUDIO_LEVEL_GAIN) * 100) / 100;
+
+    if (level <= 0) {
+        return;
+    }
+    audioLevels[participantId] = Math.max(audioLevels[participantId] ?? 0, level);
+}
+
+/**
+ * Reads remote (inbound-rtp) and local (media-source) audio levels from the active peer
+ * connection's stats.
+ *
+ * @param {Object} conference - The current JitsiConference.
+ * @returns {Promise<void>}
+ */
+async function pollAudioLevels(conference: any) {
+    if (!conference || audioLevelsPollInFlight) {
+        return;
+    }
+    audioLevelsPollInFlight = true;
+    try {
+        const localId = conference.myUserId();
+        const localTrack = conference.getLocalAudioTrack();
+        const localMuted = !localTrack || localTrack.isMuted();
+        const tpc = conference.getActivePeerConnection?.();
+
+        if (!tpc) {
+            if (localMuted || !localId) {
+                closeLocalLevelProbe();
+
+                return;
+            }
+            const level = await probeLocalLevel(localTrack.getTrack());
+
+            level !== undefined && recordAudioLevel(localId, level);
+
+            return;
+        }
+        closeLocalLevelProbe();
+
+        const owners = new Map<number, string>();
+
+        for (const track of tpc.getRemoteTracks(undefined, MEDIA_TYPE.AUDIO)) {
+            owners.set(track.getSsrc(), track.getParticipantId());
+        }
+        const report = await tpc.getStats();
+
+        report.forEach((stat: any) => {
+            if (stat.kind !== 'audio' || typeof stat.audioLevel !== 'number') {
+                return;
+            }
+            if (stat.type === 'inbound-rtp') {
+                const owner = owners.get(stat.ssrc);
+
+                owner && recordAudioLevel(owner, stat.audioLevel);
+            } else if (stat.type === 'media-source' && !localMuted && localId) {
+                recordAudioLevel(localId, stat.audioLevel);
+            }
+        });
+    } catch (error) {
+        logger.debug('Podium: audio level stats failed', error);
+    } finally {
+        audioLevelsPollInFlight = false;
+    }
+}
+
+/**
+ * Measures the local mic level while the conference has no peer connection (the local
+ * participant is alone), by sending the mic track over an in-process loopback connection.
+ *
+ * @param {MediaStreamTrack} track - The local audio track.
+ * @returns {Promise<number|undefined>} The raw level, or undefined while still connecting.
+ */
+async function probeLocalLevel(track: any) {
+    if (!track) {
+        return undefined;
+    }
+    if (localLevelProbe?.track !== track) {
+        closeLocalLevelProbe();
+        localLevelProbe = openLocalLevelProbe(track);
+    }
+    const report = await localLevelProbe!.sender.getStats();
+    let level: number | undefined;
+
+    report.forEach((stat: any) => {
+        if (stat.type === 'media-source' && stat.kind === 'audio' && typeof stat.audioLevel === 'number') {
+            level = stat.audioLevel;
+        }
+    });
+
+    return level;
+}
+
+/**
+ * Opens a loopback pair of peer connections carrying the given track.
+ *
+ * @param {MediaStreamTrack} track - The local audio track.
+ * @returns {Object} The probe.
+ */
+function openLocalLevelProbe(track: any) {
+    const sender = new RTCPeerConnection({ iceServers: [] });
+    const receiver = new RTCPeerConnection({ iceServers: [] });
+    const probe = { track, sender, receiver };
+
+    sender.addEventListener('icecandidate', ({ candidate }: any) => {
+        candidate && receiver.addIceCandidate(candidate).catch(() => undefined);
+    });
+    receiver.addEventListener('icecandidate', ({ candidate }: any) => {
+        candidate && sender.addIceCandidate(candidate).catch(() => undefined);
+    });
+    sender.addTrack(track);
+
+    (async () => {
+        const offer = await sender.createOffer({});
+
+        await sender.setLocalDescription(offer);
+        await receiver.setRemoteDescription(offer);
+
+        // Native WebRTC plays every remote audio track; a disabled one is played at volume 0.
+        for (const { track: echo } of receiver.getReceivers()) {
+            echo && (echo.enabled = false);
+        }
+
+        const answer = await receiver.createAnswer();
+
+        await receiver.setLocalDescription(answer);
+        await sender.setRemoteDescription(answer);
+    })().catch(error => {
+        logger.debug('Podium: local level probe failed', error);
+        localLevelProbe === probe && closeLocalLevelProbe();
+    });
+
+    return probe;
+}
+
+/**
+ * Closes the local level probe, if any.
+ *
+ * @returns {void}
+ */
+function closeLocalLevelProbe() {
+    if (!localLevelProbe) {
+        return;
+    }
+    const { sender, receiver } = localLevelProbe;
+
+    localLevelProbe = undefined;
+    sender.close();
+    receiver.close();
 }
 
 /**
@@ -223,8 +420,11 @@ function startAudioLevels(store: IStore) {
  * @returns {void}
  */
 function stopAudioLevels() {
+    closeLocalLevelProbe();
     audioLevelsTimer && clearInterval(audioLevelsTimer);
     audioLevelsTimer = undefined;
+    audioLevelsPollTimer && clearInterval(audioLevelsPollTimer);
+    audioLevelsPollTimer = undefined;
     audioLevels = {};
 }
 
@@ -307,9 +507,14 @@ externalAPIEnabled && StateListenerRegistry.register(
     });
 
 externalAPIEnabled && StateListenerRegistry.register(
-    /* selector */ state => isLocalScreenSharing(state),
-    /* listener */ sharing => {
-        emit('localScreenShare', { sharing });
+    /* selector */ state => `${isLocalScreenSharing(state)}:${localScreenShareTrackIdOf(state) || ''}`,
+    /* listener */ (_key, store) => {
+        const state = store.getState();
+
+        emit('localScreenShare', {
+            sharing: isLocalScreenSharing(state),
+            trackId: localScreenShareTrackIdOf(state) || null
+        });
     });
 
 externalAPIEnabled && StateListenerRegistry.register(
