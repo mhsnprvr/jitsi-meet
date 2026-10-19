@@ -204,6 +204,11 @@ static NSString *recordingModeToString(RecordingMode mode);
     [externalAPI sendCameraFacingModeMessage:to :facingMode];
 }
 
+- (void)sendPodiumCommand:(NSString * _Nonnull)name :(NSString * _Nullable)payload {
+    ExternalAPI *externalAPI = [[JitsiMeet sharedInstance] getExternalAPI];
+    [externalAPI sendPodiumCommand:name :payload];
+}
+
 #pragma mark Private methods
 
 - (void)registerObservers {

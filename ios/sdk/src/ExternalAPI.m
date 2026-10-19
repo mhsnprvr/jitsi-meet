@@ -34,6 +34,7 @@ static NSString * const startRecordingAction = @"org.jitsi.meet.START_RECORDING"
 static NSString * const stopRecordingAction = @"org.jitsi.meet.STOP_RECORDING";
 static NSString * const overwriteConfigAction = @"org.jitsi.meet.OVERWRITE_CONFIG";
 static NSString * const sendCameraFacingModeMessageAction = @"org.jitsi.meet.SEND_CAMERA_FACING_MODE_MESSAGE";
+static NSString * const podiumCommandAction = @"org.jitsi.meet.PODIUM_COMMAND";
 
 @implementation ExternalAPI
 
@@ -64,7 +65,8 @@ RCT_EXPORT_MODULE();
         @"START_RECORDING": startRecordingAction,
         @"STOP_RECORDING": stopRecordingAction,
         @"OVERWRITE_CONFIG": overwriteConfigAction,
-        @"SEND_CAMERA_FACING_MODE_MESSAGE": sendCameraFacingModeMessageAction
+        @"SEND_CAMERA_FACING_MODE_MESSAGE": sendCameraFacingModeMessageAction,
+        @"PODIUM_COMMAND": podiumCommandAction
     };
 };
 
@@ -96,7 +98,8 @@ RCT_EXPORT_MODULE();
               startRecordingAction,
               stopRecordingAction,
               overwriteConfigAction,
-              sendCameraFacingModeMessageAction
+              sendCameraFacingModeMessageAction,
+              podiumCommandAction
     ];
 }
 
@@ -256,5 +259,14 @@ RCT_EXPORT_METHOD(sendEvent:(NSString *)name
     };
     
     [self sendEventWithName:sendCameraFacingModeMessageAction body:data];
+}
+
+- (void)sendPodiumCommand:(NSString*)name :(NSString*)payload {
+    NSDictionary *data = @{
+        @"name": name,
+        @"payload": payload ?: @"{}"
+    };
+
+    [self sendEventWithName:podiumCommandAction body:data];
 }
 @end

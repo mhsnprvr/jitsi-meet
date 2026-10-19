@@ -93,7 +93,8 @@ public class BroadcastEvent {
         TRANSCRIPTION_CHUNK_RECEIVED("org.jitsi.meet.TRANSCRIPTION_CHUNK_RECEIVED"),
         CUSTOM_BUTTON_PRESSED("org.jitsi.meet.CUSTOM_BUTTON_PRESSED"),
         CONFERENCE_UNIQUE_ID_SET("org.jitsi.meet.CONFERENCE_UNIQUE_ID_SET"),
-        RECORDING_STATUS_CHANGED("org.jitsi.meet.RECORDING_STATUS_CHANGED");
+        RECORDING_STATUS_CHANGED("org.jitsi.meet.RECORDING_STATUS_CHANGED"),
+        PODIUM_EVENT("org.jitsi.meet.PODIUM_EVENT");
 
         private static final String CONFERENCE_BLURRED_NAME = "CONFERENCE_BLURRED";
         private static final String CONFERENCE_FOCUSED_NAME = "CONFERENCE_FOCUSED";
@@ -114,6 +115,7 @@ public class BroadcastEvent {
         private static final String CUSTOM_BUTTON_PRESSED_NAME = "CUSTOM_BUTTON_PRESSED";
         private static final String CONFERENCE_UNIQUE_ID_SET_NAME = "CONFERENCE_UNIQUE_ID_SET";
         private static final String RECORDING_STATUS_CHANGED_NAME = "RECORDING_STATUS_CHANGED";
+        private static final String PODIUM_EVENT_NAME = "PODIUM_EVENT";
 
         private final String action;
 
@@ -174,6 +176,8 @@ public class BroadcastEvent {
                     return CONFERENCE_UNIQUE_ID_SET;
                 case RECORDING_STATUS_CHANGED_NAME:
                     return RECORDING_STATUS_CHANGED;
+                case PODIUM_EVENT_NAME:
+                    return PODIUM_EVENT;
             }
 
             return null;

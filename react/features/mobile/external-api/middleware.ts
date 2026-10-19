@@ -71,6 +71,7 @@ import { READY_TO_CLOSE } from './actionTypes';
 import { setParticipantsWithScreenShare } from './actions';
 import { participantToParticipantInfo, sendEvent } from './functions';
 import logger from './logger';
+import './podium';
 
 /**
  * Event which will be emitted on the native side when a chat message is received

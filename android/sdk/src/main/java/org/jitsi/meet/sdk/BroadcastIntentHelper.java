@@ -154,4 +154,12 @@ public class BroadcastIntentHelper {
 
         return intent;
     }
+
+    public static Intent buildPodiumCommandIntent(String name, String payload) {
+        Intent intent = new Intent(BroadcastAction.Type.PODIUM_COMMAND.getAction());
+        intent.putExtra("name", name);
+        intent.putExtra("payload", payload);
+
+        return intent;
+    }
 }

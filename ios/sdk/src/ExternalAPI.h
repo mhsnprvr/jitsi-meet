@@ -37,5 +37,6 @@ static NSString * const sendEventNotificationName = @"org.jitsi.meet.SendEvent";
 - (void)stopRecording:(NSString*)mode :(BOOL)transcription;
 - (void)overwriteConfig:(NSDictionary*)config;
 - (void)sendCameraFacingModeMessage:(NSString*)to :(NSString*)facingMode;
+- (void)sendPodiumCommand:(NSString*)name :(NSString*)payload;
 
 @end
