@@ -18,7 +18,7 @@ import MiddlewareRegistry from '../../base/redux/MiddlewareRegistry';
 import StateListenerRegistry from '../../base/redux/StateListenerRegistry';
 import { LOWER_HAND_MESSAGE } from '../../base/tracks/constants';
 import { getLocalDesktopTrack } from '../../base/tracks/functions.any';
-import { UPDATE_BREAKOUT_ROOMS, _RESET_BREAKOUT_ROOMS } from '../../breakout-rooms/actionTypes';
+import { UPDATE_BREAKOUT_ROOMS } from '../../breakout-rooms/actionTypes';
 import {
     autoAssignToBreakoutRooms,
     closeBreakoutRoom,
@@ -77,7 +77,8 @@ let qualityTimer: ReturnType<typeof setInterval> | undefined;
 let localQuality: number | undefined;
 let remoteQuality: { [participantId: string]: number; } = {};
 let qualityDirty = false;
-let roomsBeforeSwitch: { localId?: string; roomCounter: number; rooms: any; } | undefined;
+let lastBreakoutRooms: { localId?: string; roomCounter: number; rooms: any; } | undefined;
+let breakoutConference: any;
 
 /**
  * Sends a Podium event to the native side.
@@ -187,41 +188,62 @@ function breakoutRoomsOf(state: any) {
 }
 
 /**
- * Refills the breakout room list after moving to another room. Moving resets the list, and the
- * component sends the new list only once, right after the join, which can arrive before the
- * conference listeners are attached; alone in a room, no further update ever comes.
+ * Remembers the latest non-empty breakout room list, so it can be put back after a room switch.
+ *
+ * @param {IStore} store - The redux store.
+ * @returns {void}
+ */
+function rememberBreakoutRooms(store: IStore) {
+    const state = store.getState();
+    const rooms = getBreakoutRooms(state) || {};
+
+    if (Object.keys(rooms).length === 0) {
+        return;
+    }
+    lastBreakoutRooms = {
+        localId: getLocalParticipant(state)?.id,
+        roomCounter: state['features/breakout-rooms']?.roomCounter ?? 0,
+        rooms
+    };
+}
+
+/**
+ * Refills an empty breakout room list. Moving to another room resets the list, and the component
+ * sends the new list only once, right after the join, which can be missed; alone in a room, no
+ * further update ever comes, so the way back to the main room would be lost.
  *
  * @param {IStore} store - The redux store.
  * @returns {void}
  */
 function restoreBreakoutRooms(store: IStore) {
-    const previous = roomsBeforeSwitch;
-
-    roomsBeforeSwitch = undefined;
-
     const state = store.getState();
 
-    if (!previous || Object.keys(getBreakoutRooms(state) || {}).length > 0) {
+    if (Object.keys(getBreakoutRooms(state) || {}).length > 0) {
         return;
     }
     const conference: any = getCurrentConference(state);
     const received = conference?.getBreakoutRooms?.()?._rooms;
 
     if (received && Object.keys(received).length > 0) {
+        logger.info('Podium: restoring breakout rooms from the last update');
         store.dispatch({
             type: UPDATE_BREAKOUT_ROOMS,
             rooms: received,
-            roomCounter: previous.roomCounter
+            roomCounter: lastBreakoutRooms?.roomCounter ?? 0
         });
 
         return;
     }
 
+    const previous = lastBreakoutRooms;
     const roomId = getCurrentRoomId(state);
 
-    if (!roomId || !previous.rooms[roomId]) {
+    // Only from inside one of those breakout rooms. Back in the main room the server sends the
+    // list itself; when it doesn't, the main room was recreated and the old rooms are gone.
+    if (!previous || !roomId || !previous.rooms[roomId] || previous.rooms[roomId].isMainRoom) {
         return;
     }
+    logger.info('Podium: restoring the breakout rooms known before the switch');
 
     // The local participant rejoins with a new endpoint id, so its old entry is stale.
     const rooms: any = {};
@@ -244,6 +266,50 @@ function restoreBreakoutRooms(store: IStore) {
         rooms,
         roomCounter: previous.roomCounter
     });
+}
+
+let onBreakoutRoomsUpdated: ((payload: any) => void) | undefined;
+
+/**
+ * Applies breakout room updates of the current conference. The breakout-rooms feature attaches
+ * its own listener only when a conference appears in the state, which a room switch can skip.
+ *
+ * @param {IStore} store - The redux store.
+ * @returns {void}
+ */
+function startBreakoutRooms(store: IStore) {
+    stopBreakoutRooms();
+    const conference: any = getCurrentConference(store.getState());
+
+    if (!conference) {
+        return;
+    }
+    breakoutConference = conference;
+    onBreakoutRoomsUpdated = ({ rooms, roomCounter }: any) => {
+        logger.info(`Podium: breakout rooms update with ${Object.keys(rooms || {}).length} rooms`);
+        if (!rooms || getBreakoutRooms(store.getState()) === rooms) {
+            return;
+        }
+        store.dispatch({
+            type: UPDATE_BREAKOUT_ROOMS,
+            rooms,
+            roomCounter
+        });
+    };
+    conference.on(JitsiConferenceEvents.BREAKOUT_ROOMS_UPDATED, onBreakoutRoomsUpdated);
+}
+
+/**
+ * Stops applying breakout room updates.
+ *
+ * @returns {void}
+ */
+function stopBreakoutRooms() {
+    if (breakoutConference && onBreakoutRoomsUpdated) {
+        breakoutConference.off(JitsiConferenceEvents.BREAKOUT_ROOMS_UPDATED, onBreakoutRoomsUpdated);
+    }
+    breakoutConference = undefined;
+    onBreakoutRoomsUpdated = undefined;
 }
 
 /**
@@ -377,6 +443,7 @@ function handleCommand(store: IStore, name: string, data: any) {
         data.participantId && data.roomId && dispatch(sendParticipantToRoom(data.participantId, data.roomId));
         break;
     case 'moveToRoom':
+        restoreBreakoutRooms(store);
         dispatch(moveToRoom(data.roomId || undefined));
         break;
     case 'autoAssignBreakoutRooms':
@@ -683,19 +750,6 @@ function stopConnectionQuality() {
 }
 
 externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
-    if (action.type === _RESET_BREAKOUT_ROOMS) {
-        const state = store.getState();
-        const rooms = getBreakoutRooms(state) || {};
-
-        roomsBeforeSwitch = Object.keys(rooms).length > 0
-            ? {
-                localId: getLocalParticipant(state)?.id,
-                roomCounter: state['features/breakout-rooms']?.roomCounter ?? 0,
-                rooms
-            }
-            : undefined;
-    }
-
     const result = next(action);
 
     switch (action.type) {
@@ -717,17 +771,20 @@ externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
         eventEmitter?.removeAllListeners(ExternalAPI.PODIUM_COMMAND);
         stopAudioLevels();
         stopConnectionQuality();
-        roomsBeforeSwitch = undefined;
+        stopBreakoutRooms();
+        lastBreakoutRooms = undefined;
         break;
     case CONFERENCE_JOINED:
         startAudioLevels(store);
         startConnectionQuality(store);
+        startBreakoutRooms(store);
         restoreBreakoutRooms(store);
         emit('state', snapshot(store));
         break;
     case CONFERENCE_LEFT:
         stopAudioLevels();
         stopConnectionQuality();
+        action.conference === breakoutConference && stopBreakoutRooms();
         break;
     case DOMINANT_SPEAKER_CHANGED:
         emit('dominantSpeaker', {
@@ -798,6 +855,7 @@ externalAPIEnabled && StateListenerRegistry.register(
 externalAPIEnabled && StateListenerRegistry.register(
     /* selector */ state => state['features/breakout-rooms']?.rooms,
     /* listener */ (_rooms, store) => {
+        rememberBreakoutRooms(store);
         emit('breakoutRooms', breakoutRoomsOf(store.getState()));
     });
 
