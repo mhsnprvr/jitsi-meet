@@ -5,7 +5,7 @@ import { IStore } from '../../app/types';
 import { APP_WILL_MOUNT, APP_WILL_UNMOUNT } from '../../base/app/actionTypes';
 import { CONFERENCE_JOINED, CONFERENCE_LEFT, KICKED_OUT } from '../../base/conference/actionTypes';
 import { getCurrentConference } from '../../base/conference/functions';
-import { JitsiConferenceEvents } from '../../base/lib-jitsi-meet';
+import { JitsiConferenceEvents, JitsiConnectionQualityEvents } from '../../base/lib-jitsi-meet';
 import { MEDIA_TYPE, VIDEO_TYPE } from '../../base/media/constants';
 import {
     DOMINANT_SPEAKER_CHANGED,
@@ -18,6 +18,15 @@ import MiddlewareRegistry from '../../base/redux/MiddlewareRegistry';
 import StateListenerRegistry from '../../base/redux/StateListenerRegistry';
 import { LOWER_HAND_MESSAGE } from '../../base/tracks/constants';
 import { getLocalDesktopTrack } from '../../base/tracks/functions.any';
+import {
+    autoAssignToBreakoutRooms,
+    closeBreakoutRoom,
+    createBreakoutRoom,
+    moveToRoom,
+    removeBreakoutRoom,
+    sendParticipantToRoom
+} from '../../breakout-rooms/actions';
+import { getBreakoutRooms, getCurrentRoomId, isInBreakoutRoom } from '../../breakout-rooms/functions';
 import { setTileView } from '../../video-layout/actions.any';
 import { muteAllParticipants, muteRemote } from '../../video-menu/actions.any';
 // @ts-ignore
@@ -50,9 +59,11 @@ const AUDIO_LEVELS_POLL_INTERVAL = 300;
  */
 const AUDIO_LEVEL_GAIN = 2.5;
 
+const CONNECTION_QUALITY_FLUSH_INTERVAL = 3000;
+
 const externalAPIEnabled = isExternalAPIAvailable();
 
-const { ExternalAPI } = NativeModules;
+const { AudioMode, ExternalAPI } = NativeModules;
 
 let eventEmitter: any;
 let audioLevels: { [participantId: string]: number; } = {};
@@ -60,6 +71,11 @@ let audioLevelsTimer: ReturnType<typeof setInterval> | undefined;
 let audioLevelsPollTimer: ReturnType<typeof setInterval> | undefined;
 let audioLevelsPollInFlight = false;
 let localLevelProbe: { receiver: RTCPeerConnection; sender: RTCPeerConnection; track: any; } | undefined;
+let qualityConference: any;
+let qualityTimer: ReturnType<typeof setInterval> | undefined;
+let localQuality: number | undefined;
+let remoteQuality: { [participantId: string]: number; } = {};
+let qualityDirty = false;
 
 /**
  * Sends a Podium event to the native side.
@@ -104,7 +120,63 @@ function snapshot(store: IStore) {
         raisedHands: raisedHandsOf(state),
         screenShare: remoteScreenShareOf(state) || null,
         localScreenShare: isLocalScreenSharing(state),
-        localScreenShareTrackId: localScreenShareTrackIdOf(state) || null
+        localScreenShareTrackId: localScreenShareTrackIdOf(state) || null,
+        audioDevices: audioDevicesOf(state),
+        breakoutRooms: breakoutRoomsOf(state)
+    };
+}
+
+/**
+ * Returns the audio output devices reported by the native AudioMode module.
+ *
+ * @param {Object} state - The redux state.
+ * @returns {Array<Object>}
+ */
+function audioDevicesOf(state: any) {
+    const devices = state['features/mobile/audio-mode']?.devices || [];
+
+    return devices.map((device: any) => {
+        return {
+            uid: device.uid || null,
+            type: device.type,
+            name: device.name || null,
+            selected: Boolean(device.selected)
+        };
+    });
+}
+
+/**
+ * Returns the breakout rooms of the current conference in a transport friendly shape. Participant ids are
+ * endpoint ids, the resource part of each occupant's room jid.
+ *
+ * @param {Object} state - The redux state.
+ * @returns {Object}
+ */
+function breakoutRoomsOf(state: any) {
+    const conference: any = getCurrentConference(state);
+    const rooms = getBreakoutRooms(state) || {};
+
+    return {
+        supported: Boolean(conference?.getBreakoutRooms?.()?.isSupported?.()),
+        currentRoomId: getCurrentRoomId(state) || null,
+        isInBreakoutRoom: Boolean(isInBreakoutRoom(state)),
+        rooms: Object.values(rooms).map((room: any) => {
+            return {
+                id: room.id,
+                jid: room.jid,
+                name: room.name || '',
+                isMainRoom: Boolean(room.isMainRoom),
+                participants: Object.keys(room.participants || {}).map(longId => {
+                    const participant = room.participants[longId];
+                    const parts = longId.split('/');
+
+                    return {
+                        participantId: parts.length > 1 ? parts[1] : longId,
+                        displayName: participant?.displayName || ''
+                    };
+                })
+            };
+        })
     };
 }
 
@@ -222,6 +294,27 @@ function handleCommand(store: IStore, name: string, data: any) {
         break;
     case 'requestState':
         emit('state', snapshot(store));
+        break;
+    case 'setAudioDevice':
+        (data.uid || data.type) && AudioMode?.setAudioDevice?.(data.uid || data.type);
+        break;
+    case 'createBreakoutRoom':
+        dispatch(createBreakoutRoom(data.name || undefined));
+        break;
+    case 'removeBreakoutRoom':
+        data.jid && dispatch(removeBreakoutRoom(data.jid));
+        break;
+    case 'closeBreakoutRoom':
+        data.roomId && dispatch(closeBreakoutRoom(data.roomId));
+        break;
+    case 'sendParticipantToRoom':
+        data.participantId && data.roomId && dispatch(sendParticipantToRoom(data.participantId, data.roomId));
+        break;
+    case 'moveToRoom':
+        dispatch(moveToRoom(data.roomId || undefined));
+        break;
+    case 'autoAssignBreakoutRooms':
+        dispatch(autoAssignToBreakoutRooms());
         break;
     default:
         logger.warn(`Podium: unknown command ${name}`);
@@ -428,6 +521,101 @@ function stopAudioLevels() {
     audioLevels = {};
 }
 
+/**
+ * Emits the connection state of the conference.
+ *
+ * @returns {void}
+ */
+function onConnectionInterrupted() {
+    emit('connection', { state: 'interrupted' });
+}
+
+/**
+ * Emits the connection state of the conference.
+ *
+ * @returns {void}
+ */
+function onConnectionRestored() {
+    emit('connection', { state: 'restored' });
+}
+
+/**
+ * Records the local connection quality, 0..100.
+ *
+ * @param {Object} stats - The local stats.
+ * @returns {void}
+ */
+function onLocalStats(stats: any) {
+    if (typeof stats?.connectionQuality === 'number') {
+        localQuality = Math.round(stats.connectionQuality);
+        qualityDirty = true;
+    }
+}
+
+/**
+ * Records the connection quality of a remote participant, 0..100.
+ *
+ * @param {string} participantId - The participant id.
+ * @param {Object} stats - The remote stats.
+ * @returns {void}
+ */
+function onRemoteStats(participantId: string, stats: any) {
+    if (participantId && typeof stats?.connectionQuality === 'number') {
+        remoteQuality[participantId] = Math.round(stats.connectionQuality);
+        qualityDirty = true;
+    }
+}
+
+/**
+ * Starts forwarding the connection state and connection quality of the current conference.
+ *
+ * @param {IStore} store - The redux store.
+ * @returns {void}
+ */
+function startConnectionQuality(store: IStore) {
+    stopConnectionQuality();
+    const conference: any = getCurrentConference(store.getState());
+
+    if (!conference) {
+        return;
+    }
+    qualityConference = conference;
+    conference.on(JitsiConferenceEvents.CONNECTION_INTERRUPTED, onConnectionInterrupted);
+    conference.on(JitsiConferenceEvents.CONNECTION_RESTORED, onConnectionRestored);
+    conference.on(JitsiConnectionQualityEvents.LOCAL_STATS_UPDATED, onLocalStats);
+    conference.on(JitsiConnectionQualityEvents.REMOTE_STATS_UPDATED, onRemoteStats);
+    qualityTimer = setInterval(() => {
+        if (!qualityDirty) {
+            return;
+        }
+        qualityDirty = false;
+        emit('connectionQuality', {
+            local: localQuality ?? null,
+            remote: remoteQuality
+        });
+    }, CONNECTION_QUALITY_FLUSH_INTERVAL);
+}
+
+/**
+ * Stops forwarding the connection state and quality.
+ *
+ * @returns {void}
+ */
+function stopConnectionQuality() {
+    if (qualityConference) {
+        qualityConference.off(JitsiConferenceEvents.CONNECTION_INTERRUPTED, onConnectionInterrupted);
+        qualityConference.off(JitsiConferenceEvents.CONNECTION_RESTORED, onConnectionRestored);
+        qualityConference.off(JitsiConnectionQualityEvents.LOCAL_STATS_UPDATED, onLocalStats);
+        qualityConference.off(JitsiConnectionQualityEvents.REMOTE_STATS_UPDATED, onRemoteStats);
+        qualityConference = undefined;
+    }
+    qualityTimer && clearInterval(qualityTimer);
+    qualityTimer = undefined;
+    localQuality = undefined;
+    remoteQuality = {};
+    qualityDirty = false;
+}
+
 externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
     const result = next(action);
 
@@ -449,13 +637,16 @@ externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
     case APP_WILL_UNMOUNT:
         eventEmitter?.removeAllListeners(ExternalAPI.PODIUM_COMMAND);
         stopAudioLevels();
+        stopConnectionQuality();
         break;
     case CONFERENCE_JOINED:
         startAudioLevels(store);
+        startConnectionQuality(store);
         emit('state', snapshot(store));
         break;
     case CONFERENCE_LEFT:
         stopAudioLevels();
+        stopConnectionQuality();
         break;
     case DOMINANT_SPEAKER_CHANGED:
         emit('dominantSpeaker', {
@@ -515,6 +706,18 @@ externalAPIEnabled && StateListenerRegistry.register(
             sharing: isLocalScreenSharing(state),
             trackId: localScreenShareTrackIdOf(state) || null
         });
+    });
+
+externalAPIEnabled && StateListenerRegistry.register(
+    /* selector */ state => state['features/mobile/audio-mode']?.devices,
+    /* listener */ (_devices, store) => {
+        emit('audioDevices', { devices: audioDevicesOf(store.getState()) });
+    });
+
+externalAPIEnabled && StateListenerRegistry.register(
+    /* selector */ state => state['features/breakout-rooms']?.rooms,
+    /* listener */ (_rooms, store) => {
+        emit('breakoutRooms', breakoutRoomsOf(store.getState()));
     });
 
 externalAPIEnabled && StateListenerRegistry.register(
