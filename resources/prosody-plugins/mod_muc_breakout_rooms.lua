@@ -15,6 +15,13 @@
 --     muc_room_locking = false
 --     muc_room_default_public_jids = true
 --
+-- Podium protected breakout rooms: set under the VirtualHost the same secret
+-- the Podium server signs passes with (JITSI__BREAKOUT_SECRET):
+--     podium_breakout_secret = "..."
+-- Rooms created with a server-signed `podiumAccess` token only admit
+-- occupants presenting a pass for that room, bound to their own jid, as the
+-- MUC password.
+--
 
 module:depends('room_destroy');
 
@@ -26,6 +33,7 @@ if not have_async then
     return;
 end
 
+local jid_bare = require 'util.jid'.bare;
 local jid_node = require 'util.jid'.node;
 local jid_host = require 'util.jid'.host;
 local jid_split = require 'util.jid'.split;
@@ -35,8 +43,41 @@ local uuid_gen = require 'util.uuid'.generate;
 
 local util = module:require 'util';
 local internal_room_jid_match_rewrite = util.internal_room_jid_match_rewrite;
+local is_admin = util.is_admin;
 local is_healthcheck_room = util.is_healthcheck_room;
 local process_host_module = util.process_host_module;
+
+local PODIUM_TOKEN_ISSUER = 'podium';
+local PODIUM_TOKEN_AUDIENCE = 'jitsi-breakout';
+local podium_breakout_secret = module:get_option_string('podium_breakout_secret');
+local podium_jwt;
+if podium_breakout_secret and podium_breakout_secret ~= '' then
+    local ok, lib = pcall(module.require, module, 'luajwtjitsi');
+    if ok then
+        podium_jwt = lib;
+    else
+        module:log('error', 'Podium breakout protection disabled, cannot load luajwtjitsi: %s', lib);
+    end
+end
+
+-- Returns the claims of a valid Podium breakout token of the given type, or nil and a reason.
+local function verify_podium_token(token, expected_type)
+    if not podium_jwt then
+        return nil, 'protection not configured';
+    end
+    if type(token) ~= 'string' or token == '' then
+        return nil, 'missing token';
+    end
+    local claims, err = podium_jwt.verify(
+        token, 'HS256', podium_breakout_secret, { PODIUM_TOKEN_ISSUER }, { PODIUM_TOKEN_AUDIENCE });
+    if not claims then
+        return nil, err;
+    end
+    if claims.typ ~= expected_type or type(claims.room) ~= 'string' then
+        return nil, 'unexpected token';
+    end
+    return claims;
+end
 
 local BREAKOUT_ROOMS_IDENTITY_TYPE = 'breakout_rooms';
 -- Available breakout room functionality
@@ -157,6 +198,7 @@ function broadcast_breakout_rooms(room_jid)
                 id = breakout_room_node,
                 jid = breakout_room_jid,
                 name = subject,
+                podiumAccess = (main_room._data.breakout_rooms_podium or {})[breakout_room_jid],
                 participants = {}
             }
 
@@ -200,7 +242,25 @@ end
 
 -- Managing breakout rooms
 
-function create_breakout_room(orig_room, subject)
+-- Validates a Podium create token, returning the access policy id it carries.
+local function podium_policy_for_create(main_room, main_room_jid, token)
+    local claims, err = verify_podium_token(token, 'create');
+    if not claims then
+        return nil, err;
+    end
+    local main_node = jid_node(internal_room_jid_match_rewrite(main_room_jid));
+    if type(claims.outpost) ~= 'string' or string.lower(claims.outpost) ~= string.lower(main_node or '') then
+        return nil, 'token is for another conference';
+    end
+    for _, policy in pairs(main_room._data.breakout_rooms_podium or {}) do
+        if policy == claims.room then
+            return nil, 'token already used';
+        end
+    end
+    return claims.room;
+end
+
+function create_breakout_room(orig_room, subject, podium_access)
     local main_room, main_room_jid = get_main_room(orig_room.jid);
 
     if orig_room ~= main_room then
@@ -208,7 +268,23 @@ function create_breakout_room(orig_room, subject)
         return;
     end
 
+    local podium_policy;
+    if podium_access then
+        local err;
+        podium_policy, err = podium_policy_for_create(main_room, main_room_jid, podium_access);
+        if not podium_policy then
+            -- Never fall back to an open room when protection was asked for.
+            module:log('warn', 'Rejecting protected breakout room for %s: %s', main_room_jid, err);
+            return;
+        end
+    end
+
     local breakout_room_jid = uuid_gen() .. '@' .. breakout_rooms_muc_component_config;
+
+    if podium_policy then
+        main_room._data.breakout_rooms_podium = main_room._data.breakout_rooms_podium or {};
+        main_room._data.breakout_rooms_podium[breakout_room_jid] = podium_policy;
+    end
 
     if not main_room._data.breakout_rooms then
         main_room._data.breakout_rooms = {};
@@ -246,6 +322,9 @@ function destroy_breakout_room(orig_room, room_jid, message)
     if main_room then
         if main_room._data.breakout_rooms then
             main_room._data.breakout_rooms[room_jid] = nil;
+        end
+        if main_room._data.breakout_rooms_podium then
+            main_room._data.breakout_rooms_podium[room_jid] = nil;
         end
         main_room:save(true);
 
@@ -338,7 +417,7 @@ function on_message(event)
     end
 
     if message.attr.type == JSON_TYPE_ADD_BREAKOUT_ROOM then
-        create_breakout_room(room, message.attr.subject);
+        create_breakout_room(room, message.attr.subject, message.attr.podiumAccess);
         return true;
     elseif message.attr.type == JSON_TYPE_REMOVE_BREAKOUT_ROOM then
         destroy_breakout_room(room, message.attr.breakoutRoomJid);
@@ -387,6 +466,40 @@ function on_breakout_room_pre_create(event)
     else
         module:log('debug', 'Invalid breakout room %s will not be created.', breakout_room.jid);
         breakout_room:destroy(main_room_jid, 'Breakout room is invalid.');
+        return true;
+    end
+end
+
+-- Admits occupants of Podium protected rooms only with a pass for this room
+-- bound to their own jid, sent as the MUC password.
+function on_breakout_occupant_pre_join(event)
+    local room, stanza, origin = event.room, event.stanza, event.origin;
+    local from = stanza.attr.from;
+
+    if is_healthcheck_room(room.jid) or is_admin(from) then
+        return;
+    end
+
+    local main_room = get_main_room(room.jid);
+    local policy = main_room and (main_room._data.breakout_rooms_podium or {})[room.jid];
+    if not policy then
+        return;
+    end
+
+    local muc_x = stanza:get_child('x', 'http://jabber.org/protocol/muc');
+    local pass = muc_x and muc_x:get_child_text('password');
+    local claims, err = verify_podium_token(pass, 'join');
+    if claims and claims.room ~= policy then
+        claims, err = nil, 'pass is for another room';
+    end
+    if claims and (type(claims.jid) ~= 'string' or string.lower(claims.jid) ~= string.lower(jid_bare(from))) then
+        claims, err = nil, 'pass is for another connection';
+    end
+
+    if not claims then
+        module:log('info', 'Denying %s from protected breakout room %s: %s', from, room.jid, err);
+        -- Answered like a wrong room password, so clients can recover in place.
+        origin.send(st.error_reply(stanza, 'auth', 'not-authorized'));
         return true;
     end
 end
@@ -544,6 +657,7 @@ function process_breakout_rooms_muc_loaded(breakout_rooms_muc, host_module)
     host_module:hook('muc-occupant-joined', on_occupant_joined);
     host_module:hook('muc-occupant-left', on_occupant_left);
     host_module:hook('muc-room-pre-create', on_breakout_room_pre_create);
+    host_module:hook('muc-occupant-pre-join', on_breakout_occupant_pre_join, 5);
     host_module:hook('muc-occupant-pre-leave', on_occupant_pre_leave);
 
     host_module:hook('muc-disco#info', function (event)

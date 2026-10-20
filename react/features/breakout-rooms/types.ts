@@ -10,6 +10,11 @@ export interface IRoom {
             role: string;
         };
     };
+
+    /**
+     * Podium access policy id of a protected room; joining it needs a pass from the Podium server.
+     */
+    podiumAccess?: string;
 }
 
 export interface IRooms {

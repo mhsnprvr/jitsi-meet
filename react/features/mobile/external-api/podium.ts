@@ -3,9 +3,18 @@ import { RTCPeerConnection } from 'react-native-webrtc';
 
 import { IStore } from '../../app/types';
 import { APP_WILL_MOUNT, APP_WILL_UNMOUNT } from '../../base/app/actionTypes';
-import { CONFERENCE_JOINED, CONFERENCE_LEFT, KICKED_OUT } from '../../base/conference/actionTypes';
+import {
+    CONFERENCE_FAILED,
+    CONFERENCE_JOINED,
+    CONFERENCE_LEFT,
+    KICKED_OUT
+} from '../../base/conference/actionTypes';
+import { createConference } from '../../base/conference/actions';
+import { CONFERENCE_LEAVE_REASONS } from '../../base/conference/constants';
 import { getCurrentConference } from '../../base/conference/functions';
-import { JitsiConferenceEvents, JitsiConnectionQualityEvents } from '../../base/lib-jitsi-meet';
+import { hideDialog } from '../../base/dialog/actions';
+import { JitsiConferenceErrors, JitsiConferenceEvents, JitsiConnectionQualityEvents } from '../../base/lib-jitsi-meet';
+import { setAudioMuted, setVideoMuted } from '../../base/media/actions';
 import { MEDIA_TYPE, VIDEO_TYPE } from '../../base/media/constants';
 import {
     DOMINANT_SPEAKER_CHANGED,
@@ -16,9 +25,10 @@ import { kickParticipant, pinParticipant, raiseHand } from '../../base/participa
 import { getLocalParticipant, getRemoteParticipants } from '../../base/participants/functions';
 import MiddlewareRegistry from '../../base/redux/MiddlewareRegistry';
 import StateListenerRegistry from '../../base/redux/StateListenerRegistry';
+import { createDesiredLocalTracks } from '../../base/tracks/actions';
 import { LOWER_HAND_MESSAGE } from '../../base/tracks/constants';
 import { getLocalDesktopTrack } from '../../base/tracks/functions.any';
-import { UPDATE_BREAKOUT_ROOMS } from '../../breakout-rooms/actionTypes';
+import { PODIUM_PROTECTED_MOVE_REQUESTED, UPDATE_BREAKOUT_ROOMS } from '../../breakout-rooms/actionTypes';
 import {
     autoAssignToBreakoutRooms,
     closeBreakoutRoom,
@@ -27,7 +37,8 @@ import {
     removeBreakoutRoom,
     sendParticipantToRoom
 } from '../../breakout-rooms/actions';
-import { getBreakoutRooms, getCurrentRoomId, isInBreakoutRoom } from '../../breakout-rooms/functions';
+import { getBreakoutRooms, getCurrentRoomId, getMainRoom, isInBreakoutRoom } from '../../breakout-rooms/functions';
+import PasswordRequiredPrompt from '../../room-lock/components/PasswordRequiredPrompt';
 import { setTileView } from '../../video-layout/actions.any';
 import { muteAllParticipants, muteRemote } from '../../video-menu/actions.any';
 // @ts-ignore
@@ -81,6 +92,17 @@ let lastBreakoutRooms: { localId?: string; roomCounter: number; rooms: any; } | 
 let breakoutConference: any;
 
 /**
+ * A move into a protected breakout room under way, with the main room to fall back to if the
+ * room turns the pass down.
+ */
+let protectedMove: { mainRoomJid: string; roomId: string; } | undefined;
+
+/**
+ * How long leaving a conference that refused us may take before rejoining the main room anyway.
+ */
+const DENIED_LEAVE_TIMEOUT = 2000;
+
+/**
  * Sends a Podium event to the native side.
  *
  * @param {string} name - The event name.
@@ -125,8 +147,24 @@ function snapshot(store: IStore) {
         localScreenShare: isLocalScreenSharing(state),
         localScreenShareTrackId: localScreenShareTrackIdOf(state) || null,
         audioDevices: audioDevicesOf(state),
-        breakoutRooms: breakoutRoomsOf(state)
+        breakoutRooms: breakoutRoomsOf(state),
+        localJid: localJidOf(state) || null,
+
+        // Lets the host app know this build can create and enter Podium protected rooms.
+        podiumBreakoutAccess: true
     };
+}
+
+/**
+ * Returns the bare jid of the conference connection, which protected room passes are bound to.
+ *
+ * @param {Object} state - The redux state.
+ * @returns {string|undefined}
+ */
+function localJidOf(state: any) {
+    const jid: string | undefined = state['features/base/connection']?.connection?.getJid?.();
+
+    return jid ? jid.split('/')[0] : undefined;
 }
 
 /**
@@ -173,6 +211,7 @@ function breakoutRoomsOf(state: any) {
                 jid: room.jid,
                 name: room.name || '',
                 isMainRoom: Boolean(room.isMainRoom),
+                podiumAccess: room.podiumAccess || null,
                 participants: Object.keys(room.participants || {}).map(longId => {
                     const participant = room.participants[longId];
                     const parts = longId.split('/');
@@ -313,6 +352,43 @@ function stopBreakoutRooms() {
 }
 
 /**
+ * Goes back to the main room after a protected breakout room turned the pass down, so the call
+ * goes on instead of waiting at a password prompt.
+ *
+ * @param {IStore} store - The redux store.
+ * @param {Object} conference - The conference that refused us.
+ * @param {Object} move - The refused move.
+ * @returns {void}
+ */
+function returnFromDeniedRoom(store: IStore, conference: any, move: { mainRoomJid: string; roomId: string; }) {
+    const { dispatch, getState } = store;
+
+    logger.info(`Podium: protected breakout room ${move.roomId} refused the pass`);
+    dispatch(hideDialog(PasswordRequiredPrompt));
+    emit('breakoutJoinDenied', { roomId: move.roomId });
+
+    const left = Promise.resolve(conference?.leave?.(CONFERENCE_LEAVE_REASONS.SWITCH_ROOM)).catch(() => undefined);
+    const timedOut = new Promise(resolve => setTimeout(() => resolve(undefined), DENIED_LEAVE_TIMEOUT));
+
+    Promise.race([ left, timedOut ]).then(() => {
+        const [ id, ...domainParts ] = move.mainRoomJid.split('@');
+
+        // Same domain hack as moveToRoom, for a room outside the configured muc.
+        // eslint-disable-next-line no-new-wrappers
+        const room: any = new String(id);
+
+        room.domain = domainParts.join('@');
+
+        const { audio, video } = getState()['features/base/media'];
+
+        dispatch(createConference(room));
+        dispatch(setAudioMuted(audio.muted));
+        dispatch(setVideoMuted(Boolean(video.muted)));
+        dispatch(createDesiredLocalTracks());
+    });
+}
+
+/**
  * Returns the most recent active remote screen share, with the ids the native side needs to find its
  * WebRTC track ({@code WebRTCModule.getTrack(pcId, trackId)}).
  *
@@ -431,7 +507,7 @@ function handleCommand(store: IStore, name: string, data: any) {
         (data.uid || data.type) && AudioMode?.setAudioDevice?.(data.uid || data.type);
         break;
     case 'createBreakoutRoom':
-        dispatch(createBreakoutRoom(data.name || undefined));
+        dispatch(createBreakoutRoom(data.name || undefined, data.podiumAccess || undefined));
         break;
     case 'removeBreakoutRoom':
         data.jid && dispatch(removeBreakoutRoom(data.jid));
@@ -442,10 +518,16 @@ function handleCommand(store: IStore, name: string, data: any) {
     case 'sendParticipantToRoom':
         data.participantId && data.roomId && dispatch(sendParticipantToRoom(data.participantId, data.roomId));
         break;
-    case 'moveToRoom':
+    case 'moveToRoom': {
         restoreBreakoutRooms(store);
-        dispatch(moveToRoom(data.roomId || undefined));
+        const mainRoomJid = getMainRoom(getState())?.jid;
+
+        protectedMove = data.password && data.roomId && mainRoomJid
+            ? { mainRoomJid, roomId: data.roomId }
+            : undefined;
+        dispatch(moveToRoom(data.roomId || undefined, data.password || undefined));
         break;
+    }
     case 'autoAssignBreakoutRooms':
         dispatch(autoAssignToBreakoutRooms());
         break;
@@ -750,7 +832,23 @@ function stopConnectionQuality() {
 }
 
 externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
+    const deniedMove = action.type === CONFERENCE_FAILED
+        && action.error?.name === JitsiConferenceErrors.PASSWORD_REQUIRED
+        ? protectedMove : undefined;
+
+    if (action.type === CONFERENCE_FAILED || action.type === CONFERENCE_JOINED) {
+        protectedMove = undefined;
+    }
+
+    // Must be set before the room-lock and external API middlewares see the failure, or they
+    // treat it as the end of the call.
+    if (deniedMove) {
+        action.error.recoverable = true;
+    }
+
     const result = next(action);
+
+    deniedMove && returnFromDeniedRoom(store, action.conference, deniedMove);
 
     switch (action.type) {
     case APP_WILL_MOUNT:
@@ -810,6 +908,9 @@ externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
         break;
     case KICKED_OUT:
         emit('kicked', { actorId: action.participant?.getId?.() });
+        break;
+    case PODIUM_PROTECTED_MOVE_REQUESTED:
+        emit('breakoutMoveRequested', { roomId: action.roomId });
         break;
     }
 

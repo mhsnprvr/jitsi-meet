@@ -592,9 +592,11 @@ export function conferenceWillLeave(conference?: IJitsiConference, isRedirect?: 
  *
  * @param {string} overrideRoom - Override the room to join, instead of taking it
  * from Redux.
+ * @param {string} overridePassword - Room password to join with, instead of taking it
+ * from Redux.
  * @returns {Function}
  */
-export function createConference(overrideRoom?: string | String) {
+export function createConference(overrideRoom?: string | String, overridePassword?: string) {
     return (dispatch: IStore['dispatch'], getState: IStore['getState']) => {
         const state = getState();
         const { connection, locationURL } = state['features/base/connection'];
@@ -635,7 +637,7 @@ export function createConference(overrideRoom?: string | String) {
 
         const replaceParticipant = getReplaceParticipant(state);
 
-        conference.join(password, replaceParticipant);
+        conference.join(overridePassword ?? password, replaceParticipant);
     };
 }
 

@@ -22,7 +22,7 @@ import {
 import { clearNotifications, showNotification } from '../notifications/actions';
 import { NOTIFICATION_TIMEOUT_TYPE } from '../notifications/constants';
 
-import { _RESET_BREAKOUT_ROOMS, _UPDATE_ROOM_COUNTER } from './actionTypes';
+import { PODIUM_PROTECTED_MOVE_REQUESTED, _RESET_BREAKOUT_ROOMS, _UPDATE_ROOM_COUNTER } from './actionTypes';
 import { FEATURE_KEY } from './constants';
 import {
     getBreakoutRooms,
@@ -35,9 +35,10 @@ import logger from './logger';
  * Action to create a breakout room.
  *
  * @param {string} name - Name / subject for the breakout room.
+ * @param {string} podiumAccess - Podium server token tying the room to its access rules.
  * @returns {Function}
  */
-export function createBreakoutRoom(name?: string) {
+export function createBreakoutRoom(name?: string, podiumAccess?: string) {
     return (dispatch: IStore['dispatch'], getState: IStore['getState']) => {
         const state = getState();
         let { roomCounter } = state[FEATURE_KEY];
@@ -50,8 +51,26 @@ export function createBreakoutRoom(name?: string) {
             roomCounter
         });
 
-        getCurrentConference(state)?.getBreakoutRooms()
-            ?.createBreakoutRoom(subject);
+        const breakoutRooms = getCurrentConference(state)?.getBreakoutRooms();
+
+        if (!podiumAccess) {
+            breakoutRooms?.createBreakoutRoom(subject);
+
+            return;
+        }
+
+        // lib-jitsi-meet's createBreakoutRoom can't carry extra attributes. Prosody checks the
+        // moderator role itself.
+        if (!breakoutRooms?.isSupported()) {
+            logger.error('Cannot create protected breakout room');
+
+            return;
+        }
+        breakoutRooms._sendMessage({
+            podiumAccess,
+            subject,
+            type: 'features/breakout-rooms/add'
+        });
     };
 }
 
@@ -182,9 +201,10 @@ export function sendParticipantToRoom(participantId: string, roomId: string) {
  * Action to move to a room.
  *
  * @param {string} roomId - The room id to move to. If omitted move to the main room.
+ * @param {string} password - Pass for a Podium protected room, sent as the room password.
  * @returns {Function}
  */
-export function moveToRoom(roomId?: string) {
+export function moveToRoom(roomId?: string, password?: string) {
     return async (dispatch: IStore['dispatch'], getState: IStore['getState']) => {
         const mainRoomId = getMainRoom(getState)?.id;
         let _roomId: string | undefined | String = roomId || mainRoomId;
@@ -215,6 +235,16 @@ export function moveToRoom(roomId?: string) {
             return;
         }
 
+        // Without a pass the room would turn us away, so let the Podium host app get one first.
+        if (targetRoom.podiumAccess && !password && navigator.product === 'ReactNative') {
+            dispatch({
+                type: PODIUM_PROTECTED_MOVE_REQUESTED,
+                roomId: targetRoom.id
+            });
+
+            return;
+        }
+
         dispatch({
             type: _RESET_BREAKOUT_ROOMS
         });
@@ -234,7 +264,7 @@ export function moveToRoom(roomId?: string) {
             }
 
             dispatch(clearNotifications());
-            dispatch(createConference(_roomId));
+            dispatch(createConference(_roomId, password));
             dispatch(setAudioMuted(audio.muted));
             dispatch(setVideoMuted(Boolean(video.muted)));
             dispatch(createDesiredLocalTracks());
