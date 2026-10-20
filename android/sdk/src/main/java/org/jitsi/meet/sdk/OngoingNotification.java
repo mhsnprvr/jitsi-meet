@@ -40,7 +40,18 @@ class OngoingNotification {
 
     private static long startingTime = 0;
 
+    private static String title;
+    private static String text;
+
     static final String ONGOING_CONFERENCE_CHANNEL_ID = "JitsiOngoingConferenceChannel";
+
+    /**
+     * Overrides the title and text of the notification. Null falls back to the default strings.
+     */
+    static void setContent(String title, String text) {
+        OngoingNotification.title = title;
+        OngoingNotification.text = text;
+    }
 
     static void createNotificationChannel(Activity context) {
         if (context == null) {
@@ -82,10 +93,14 @@ class OngoingNotification {
             startingTime = System.currentTimeMillis();
         }
 
+        String contentTitle = title != null ? title : context.getString(R.string.ongoing_notification_title);
+        String contentText = text != null ? text : context.getString(R.string.ongoing_notification_text);
+
         builder
             .setCategory(NotificationCompat.CATEGORY_CALL)
-            .setContentTitle(context.getString(R.string.ongoing_notification_title))
-            .setContentText(context.getString(R.string.ongoing_notification_text))
+            .setContentTitle(contentTitle)
+            .setContentText(contentText)
+            .setStyle(new NotificationCompat.BigTextStyle().bigText(contentText))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setOngoing(true)

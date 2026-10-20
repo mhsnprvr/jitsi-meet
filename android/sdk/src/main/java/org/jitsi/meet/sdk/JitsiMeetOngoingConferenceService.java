@@ -67,6 +67,26 @@ public class JitsiMeetOngoingConferenceService extends Service implements Ongoin
 
     static final int NOTIFICATION_ID = new Random().nextInt(99999) + 10000;
 
+    private static JitsiMeetOngoingConferenceService running;
+
+    /**
+     * Sets the title and text of the ongoing notification, refreshing it if it is showing.
+     * Null restores the default strings. Must be called on the main thread.
+     */
+    public static void setNotificationContent(String title, String text) {
+        OngoingNotification.setContent(title, text);
+
+        JitsiMeetOngoingConferenceService service = running;
+        if (service == null) {
+            return;
+        }
+        Notification notification = OngoingNotification.buildOngoingConferenceNotification(service.isAudioMuted, service, service.tapBackActivity);
+        if (notification != null) {
+            NotificationManager notificationManager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(NOTIFICATION_ID, notification);
+        }
+    }
+
     private static void doLaunch(Context context, HashMap<String, Object> extraData) {
         Activity activity = (Activity) context;
 
@@ -168,6 +188,7 @@ public class JitsiMeetOngoingConferenceService extends Service implements Ongoin
             }
         }
 
+        running = this;
         OngoingConferenceTracker.getInstance().addListener(this);
 
         IntentFilter intentFilter = new IntentFilter();
@@ -177,6 +198,9 @@ public class JitsiMeetOngoingConferenceService extends Service implements Ongoin
 
     @Override
     public void onDestroy() {
+        if (running == this) {
+            running = null;
+        }
         OngoingConferenceTracker.getInstance().removeListener(this);
         LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(broadcastReceiver);
 
