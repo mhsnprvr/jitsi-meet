@@ -18,6 +18,7 @@ import MiddlewareRegistry from '../../base/redux/MiddlewareRegistry';
 import StateListenerRegistry from '../../base/redux/StateListenerRegistry';
 import { LOWER_HAND_MESSAGE } from '../../base/tracks/constants';
 import { getLocalDesktopTrack } from '../../base/tracks/functions.any';
+import { UPDATE_BREAKOUT_ROOMS, _RESET_BREAKOUT_ROOMS } from '../../breakout-rooms/actionTypes';
 import {
     autoAssignToBreakoutRooms,
     closeBreakoutRoom,
@@ -76,6 +77,7 @@ let qualityTimer: ReturnType<typeof setInterval> | undefined;
 let localQuality: number | undefined;
 let remoteQuality: { [participantId: string]: number; } = {};
 let qualityDirty = false;
+let roomsBeforeSwitch: { localId?: string; roomCounter: number; rooms: any; } | undefined;
 
 /**
  * Sends a Podium event to the native side.
@@ -155,11 +157,15 @@ function audioDevicesOf(state: any) {
 function breakoutRoomsOf(state: any) {
     const conference: any = getCurrentConference(state);
     const rooms = getBreakoutRooms(state) || {};
+    const currentRoomId = getCurrentRoomId(state);
+
+    // The room's breakout flag comes from disco info, which can arrive after the join.
+    const currentRoom: any = currentRoomId ? rooms[currentRoomId] : undefined;
 
     return {
         supported: Boolean(conference?.getBreakoutRooms?.()?.isSupported?.()),
-        currentRoomId: getCurrentRoomId(state) || null,
-        isInBreakoutRoom: Boolean(isInBreakoutRoom(state)),
+        currentRoomId: currentRoomId || null,
+        isInBreakoutRoom: Boolean(isInBreakoutRoom(state)) || Boolean(currentRoom && !currentRoom.isMainRoom),
         rooms: Object.values(rooms).map((room: any) => {
             return {
                 id: room.id,
@@ -178,6 +184,66 @@ function breakoutRoomsOf(state: any) {
             };
         })
     };
+}
+
+/**
+ * Refills the breakout room list after moving to another room. Moving resets the list, and the
+ * component sends the new list only once, right after the join, which can arrive before the
+ * conference listeners are attached; alone in a room, no further update ever comes.
+ *
+ * @param {IStore} store - The redux store.
+ * @returns {void}
+ */
+function restoreBreakoutRooms(store: IStore) {
+    const previous = roomsBeforeSwitch;
+
+    roomsBeforeSwitch = undefined;
+
+    const state = store.getState();
+
+    if (!previous || Object.keys(getBreakoutRooms(state) || {}).length > 0) {
+        return;
+    }
+    const conference: any = getCurrentConference(state);
+    const received = conference?.getBreakoutRooms?.()?._rooms;
+
+    if (received && Object.keys(received).length > 0) {
+        store.dispatch({
+            type: UPDATE_BREAKOUT_ROOMS,
+            rooms: received,
+            roomCounter: previous.roomCounter
+        });
+
+        return;
+    }
+
+    const roomId = getCurrentRoomId(state);
+
+    if (!roomId || !previous.rooms[roomId]) {
+        return;
+    }
+
+    // The local participant rejoins with a new endpoint id, so its old entry is stale.
+    const rooms: any = {};
+
+    Object.entries(previous.rooms).forEach(([ key, room ]: [ string, any ]) => {
+        const participants: any = {};
+
+        Object.entries(room.participants || {}).forEach(([ longId, participant ]) => {
+            if (longId.split('/')[1] !== previous.localId) {
+                participants[longId] = participant;
+            }
+        });
+        rooms[key] = {
+            ...room,
+            participants
+        };
+    });
+    store.dispatch({
+        type: UPDATE_BREAKOUT_ROOMS,
+        rooms,
+        roomCounter: previous.roomCounter
+    });
 }
 
 /**
@@ -617,6 +683,19 @@ function stopConnectionQuality() {
 }
 
 externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
+    if (action.type === _RESET_BREAKOUT_ROOMS) {
+        const state = store.getState();
+        const rooms = getBreakoutRooms(state) || {};
+
+        roomsBeforeSwitch = Object.keys(rooms).length > 0
+            ? {
+                localId: getLocalParticipant(state)?.id,
+                roomCounter: state['features/breakout-rooms']?.roomCounter ?? 0,
+                rooms
+            }
+            : undefined;
+    }
+
     const result = next(action);
 
     switch (action.type) {
@@ -638,10 +717,12 @@ externalAPIEnabled && MiddlewareRegistry.register(store => next => action => {
         eventEmitter?.removeAllListeners(ExternalAPI.PODIUM_COMMAND);
         stopAudioLevels();
         stopConnectionQuality();
+        roomsBeforeSwitch = undefined;
         break;
     case CONFERENCE_JOINED:
         startAudioLevels(store);
         startConnectionQuality(store);
+        restoreBreakoutRooms(store);
         emit('state', snapshot(store));
         break;
     case CONFERENCE_LEFT:
