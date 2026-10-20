@@ -147,6 +147,7 @@ function snapshot(store: IStore) {
         localScreenShare: isLocalScreenSharing(state),
         localScreenShareTrackId: localScreenShareTrackIdOf(state) || null,
         audioDevices: audioDevicesOf(state),
+        audioInputs: audioInputsOf(state),
         breakoutRooms: breakoutRoomsOf(state),
         localJid: localJidOf(state) || null,
 
@@ -182,6 +183,26 @@ function audioDevicesOf(state: any) {
             type: device.type,
             name: device.name || null,
             selected: Boolean(device.selected)
+        };
+    });
+}
+
+/**
+ * Returns the microphones reported by the native AudioMode module.
+ *
+ * @param {Object} state - The redux state.
+ * @returns {Array<Object>}
+ */
+function audioInputsOf(state: any) {
+    const inputs = state['features/mobile/audio-mode']?.inputs || [];
+
+    return inputs.map((input: any) => {
+        return {
+            uid: input.uid,
+            type: input.type,
+            name: input.name || null,
+            selected: Boolean(input.selected),
+            preferred: Boolean(input.preferred)
         };
     });
 }
@@ -505,6 +526,9 @@ function handleCommand(store: IStore, name: string, data: any) {
         break;
     case 'setAudioDevice':
         (data.uid || data.type) && AudioMode?.setAudioDevice?.(data.uid || data.type);
+        break;
+    case 'setAudioInput':
+        AudioMode?.setAudioInput?.(data.uid || 'AUTO');
         break;
     case 'createBreakoutRoom':
         dispatch(createBreakoutRoom(data.name || undefined, data.podiumAccess || undefined));
@@ -951,6 +975,12 @@ externalAPIEnabled && StateListenerRegistry.register(
     /* selector */ state => state['features/mobile/audio-mode']?.devices,
     /* listener */ (_devices, store) => {
         emit('audioDevices', { devices: audioDevicesOf(store.getState()) });
+    });
+
+externalAPIEnabled && StateListenerRegistry.register(
+    /* selector */ state => state['features/mobile/audio-mode']?.inputs,
+    /* listener */ (_inputs, store) => {
+        emit('audioInputs', { inputs: audioInputsOf(store.getState()) });
     });
 
 externalAPIEnabled && StateListenerRegistry.register(

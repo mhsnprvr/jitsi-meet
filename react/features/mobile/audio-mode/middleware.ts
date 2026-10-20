@@ -16,7 +16,7 @@ import { getFeatureFlag } from '../../base/flags/functions';
 import MiddlewareRegistry from '../../base/redux/MiddlewareRegistry';
 import { parseURIString } from '../../base/util/uri';
 
-import { _SET_AUDIOMODE_DEVICES, _SET_AUDIOMODE_SUBSCRIPTIONS } from './actionTypes';
+import { _SET_AUDIOMODE_DEVICES, _SET_AUDIOMODE_INPUTS, _SET_AUDIOMODE_SUBSCRIPTIONS } from './actionTypes';
 import logger from './logger';
 
 const { AudioMode } = NativeModules;
@@ -100,6 +100,9 @@ function _appWillMount(store: IStore) {
         AudioModeEmitter.addListener(AudioMode.DEVICE_CHANGE_EVENT, _onDevicesUpdate, store)
     ];
 
+    AudioMode.INPUT_CHANGE_EVENT && subscriptions.push(
+        AudioModeEmitter.addListener(AudioMode.INPUT_CHANGE_EVENT, _onInputsUpdate, store));
+
     store.dispatch({
         type: _SET_AUDIOMODE_SUBSCRIPTIONS,
         subscriptions
@@ -120,6 +123,23 @@ function _onDevicesUpdate(devices: any) {
     dispatch({
         type: _SET_AUDIOMODE_DEVICES,
         devices
+    });
+}
+
+/**
+ * Handles microphone list changes. The list will be stored on the redux store.
+ *
+ * @param {Object} inputs - The current list of microphones.
+ * @private
+ * @returns {void}
+ */
+function _onInputsUpdate(inputs: any) {
+    // @ts-ignore
+    const { dispatch } = this; // eslint-disable-line @typescript-eslint/no-invalid-this
+
+    dispatch({
+        type: _SET_AUDIOMODE_INPUTS,
+        inputs
     });
 }
 

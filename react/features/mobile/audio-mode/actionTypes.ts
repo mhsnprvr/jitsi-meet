@@ -11,6 +11,18 @@
 export const _SET_AUDIOMODE_DEVICES = '_SET_AUDIOMODE_DEVICES';
 
 /**
+ * The type of redux action to set Audio Mode microphone list.
+ *
+ * {
+ *     type: _SET_AUDIOMODE_INPUTS,
+ *     inputs: Array
+ * }
+ *
+ * @protected
+ */
+export const _SET_AUDIOMODE_INPUTS = '_SET_AUDIOMODE_INPUTS';
+
+/**
  * The type of redux action to set Audio Mode module's subscriptions.
  *
  * {

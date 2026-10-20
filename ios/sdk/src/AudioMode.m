@@ -33,6 +33,10 @@ typedef enum {
 
 // Events
 static NSString * const kDevicesChanged = @"org.jitsi.meet:features/audio-mode#devices-update";
+static NSString * const kInputsChanged = @"org.jitsi.meet:features/audio-mode#inputs-update";
+
+// Passed to setAudioInput to clear the preferred input and let the system pick.
+static NSString * const kInputAuto = @"AUTO";
 
 // Device types (must match JS and Java)
 static NSString * const kDeviceTypeBluetooth  = @"BLUETOOTH";
@@ -69,12 +73,13 @@ RCT_EXPORT_MODULE();
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-    return @[ kDevicesChanged ];
+    return @[ kDevicesChanged, kInputsChanged ];
 }
 
 - (NSDictionary *)constantsToExport {
     return @{
         @"DEVICE_CHANGE_EVENT": kDevicesChanged,
+        @"INPUT_CHANGE_EVENT": kInputsChanged,
         @"AUDIO_CALL" : [NSNumber numberWithInt: kAudioModeAudioCall],
         @"DEFAULT"    : [NSNumber numberWithInt: kAudioModeDefault],
         @"VIDEO_CALL" : [NSNumber numberWithInt: kAudioModeVideoCall]
@@ -272,6 +277,45 @@ RCT_EXPORT_METHOD(setAudioDevice:(NSString *)device
     }
 }
 
+RCT_EXPORT_METHOD(setAudioInput:(NSString *)uid
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+    if (audioDisabled) {
+        resolve(nil);
+        return;
+    }
+
+    RCTLogInfo(@"[AudioMode] Selected input: %@", uid);
+
+    AVAudioSessionPortDescription *port = nil;
+    if (![uid isEqualToString:kInputAuto]) {
+        for (AVAudioSessionPortDescription *portDesc in [AVAudioSession sharedInstance].availableInputs) {
+            if ([portDesc.UID isEqualToString:uid]) {
+                port = portDesc;
+                break;
+            }
+        }
+        if (port == nil) {
+            reject(@"setAudioInput", @"Could not find audio input", nil);
+            return;
+        }
+    }
+
+    RTCAudioSession *session = JitsiAudioSession.rtcAudioSession;
+    NSError *error = nil;
+    [session lockForConfiguration];
+    BOOL success = [session setPreferredInput:port error:&error];
+    [session unlockForConfiguration];
+
+    if (success) {
+        resolve(nil);
+    } else {
+        reject(@"setAudioInput", error != nil ? error.localizedDescription : @"", error);
+    }
+
+    [self notifyDevicesChanged];
+}
+
 RCT_EXPORT_METHOD(updateDeviceList) {
     if (audioDisabled) {
         return;
@@ -368,29 +412,49 @@ RCT_EXPORT_METHOD(updateDeviceList) {
     }
 }
 
+// Input types (must match Java and the Podium channel consumers).
+- (NSString *)inputTypeToString:(AVAudioSessionPort) portType {
+    if ([portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
+        return @"BUILTIN";
+    } else if ([portType isEqualToString:AVAudioSessionPortHeadsetMic]) {
+        return @"WIRED";
+    } else if ([portType isEqualToString:AVAudioSessionPortBluetoothHFP]
+            || [portType isEqualToString:AVAudioSessionPortBluetoothLE]) {
+        return @"BLUETOOTH";
+    } else if ([portType isEqualToString:AVAudioSessionPortUSBAudio]) {
+        return @"USB";
+    } else if ([portType isEqualToString:AVAudioSessionPortCarAudio]) {
+        return @"CAR";
+    } else {
+        return @"OTHER";
+    }
+}
+
 - (void)notifyDevicesChanged {
     dispatch_async(_workerQueue, ^{
         NSMutableArray *data = [[NSMutableArray alloc] init];
         // Here we use AVAudioSession because RTCAudioSession doesn't expose availableInputs.
         AVAudioSession *session = [AVAudioSession sharedInstance];
-        NSString *currentPort = @"";
         AVAudioSessionRouteDescription *currentRoute = session.currentRoute;
-        
-        // Check what the current device is. Because the speaker is somewhat special, we need to
-        // check for it first.
-        if (currentRoute != nil) {
-            AVAudioSessionPortDescription *output = currentRoute.outputs.firstObject;
-            AVAudioSessionPortDescription *input = currentRoute.inputs.firstObject;
-            if (output != nil && [output.portType isEqualToString:AVAudioSessionPortBuiltInSpeaker]) {
-                currentPort = kDeviceTypeSpeaker;
-                self->isSpeakerOn = YES;
-            } else if (input != nil) {
-                currentPort = input.UID;
-                self->isSpeakerOn = NO;
-                self->isEarpieceOn = [input.portType isEqualToString:AVAudioSessionPortBuiltInMic];
+        AVAudioSessionPortDescription *output = currentRoute.outputs.firstObject;
+        AVAudioSessionPortDescription *input = currentRoute.inputs.firstObject;
+        NSString *outputType = output != nil ? [self portTypeToString:output.portType] : kDeviceTypeUnknown;
+
+        self->isSpeakerOn = [outputType isEqualToString:kDeviceTypeSpeaker];
+        self->isEarpieceOn = output != nil && [output.portType isEqualToString:AVAudioSessionPortBuiltInReceiver];
+
+        // The output list is made of inputs (plus the speaker), so an entry is the current output
+        // when its type matches the output port; wireless devices also have to match by name, as
+        // there can be several of them. Matching on the input instead would mark an external mic
+        // as the output.
+        BOOL (^isCurrentOutput)(NSString *, NSString *) = ^BOOL(NSString *type, NSString *name) {
+            if (![type isEqualToString:outputType]) return NO;
+            if ([type isEqualToString:kDeviceTypeBluetooth] || [type isEqualToString:kDeviceTypeCar]) {
+                return [name isEqualToString:output.portName];
             }
-        }
-        
+            return YES;
+        };
+
         BOOL headphonesAvailable = NO;
         for (AVAudioSessionPortDescription *portDesc in session.availableInputs) {
             if ([portDesc.portType isEqualToString:AVAudioSessionPortHeadsetMic] || [portDesc.portType isEqualToString:AVAudioSessionPortHeadphones]) {
@@ -404,12 +468,13 @@ RCT_EXPORT_METHOD(updateDeviceList) {
             if (headphonesAvailable && [portDesc.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
                 continue;
             }
+            NSString *type = [self portTypeToString:portDesc.portType];
             id deviceData
                 = @{
-                    @"type": [self portTypeToString:portDesc.portType],
+                    @"type": type,
                     @"name": portDesc.portName,
                     @"uid": portDesc.UID,
-                    @"selected": [NSNumber numberWithBool:[portDesc.UID isEqualToString:currentPort]]
+                    @"selected": [NSNumber numberWithBool:isCurrentOutput(type, portDesc.portName)]
                 };
             [data addObject:deviceData];
         }
@@ -420,10 +485,24 @@ RCT_EXPORT_METHOD(updateDeviceList) {
             @{ @"type": kDeviceTypeSpeaker,
                @"name": @"Speaker",
                @"uid": kDeviceTypeSpeaker,
-               @"selected": [NSNumber numberWithBool:[kDeviceTypeSpeaker isEqualToString:currentPort]]
+               @"selected": [NSNumber numberWithBool:self->isSpeakerOn]
         }];
         
         [self sendEventWithName:kDevicesChanged body:data];
+
+        NSString *preferredUID = session.preferredInput.UID;
+        NSMutableArray *inputs = [[NSMutableArray alloc] init];
+        for (AVAudioSessionPortDescription *portDesc in session.availableInputs) {
+            [inputs addObject:@{
+                @"type": [self inputTypeToString:portDesc.portType],
+                @"name": portDesc.portName,
+                @"uid": portDesc.UID,
+                @"selected": [NSNumber numberWithBool:[portDesc.UID isEqualToString:input.UID]],
+                @"preferred": [NSNumber numberWithBool:[portDesc.UID isEqualToString:preferredUID]]
+            }];
+        }
+
+        [self sendEventWithName:kInputsChanged body:inputs];
     });
 }
 

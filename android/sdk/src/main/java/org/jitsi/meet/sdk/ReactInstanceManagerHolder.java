@@ -35,6 +35,7 @@ import com.oney.WebRTCModule.WebRTCModuleOptions;
 
 import org.jitsi.meet.sdk.log.JitsiMeetLogger;
 import org.webrtc.EglBase;
+import org.webrtc.audio.JavaAudioDeviceModule;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -55,6 +56,13 @@ class ReactInstanceManagerHolder {
      * to create multiple root views off the same JavaScript bundle.
      */
     private static ReactInstanceManager reactInstanceManager;
+
+    /**
+     * The audio device module handed to WebRTC, or null when the embedding application supplied
+     * its own through {@link WebRTCModuleOptions}.
+     */
+    @Nullable
+    private static JavaAudioDeviceModule audioDeviceModule;
 
     private static List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         List<NativeModule> nativeModules
@@ -197,6 +205,11 @@ class ReactInstanceManagerHolder {
                 ? reactContext.getNativeModule(nativeModuleClass) : null;
     }
 
+    @Nullable
+    static JavaAudioDeviceModule getAudioDeviceModule() {
+        return audioDeviceModule;
+    }
+
     static ReactInstanceManager getReactInstanceManager() {
         return reactInstanceManager;
     }
@@ -217,6 +230,14 @@ class ReactInstanceManagerHolder {
         // Initialize the WebRTC module options.
         WebRTCModuleOptions options = WebRTCModuleOptions.getInstance();
         options.enableMediaProjectionService = true;
+        if (options.audioDeviceModule == null) {
+            // Same settings react-native-webrtc uses for its default module; owning it lets
+            // AudioModeModule pick the microphone.
+            audioDeviceModule = JavaAudioDeviceModule.builder(app)
+                .setEnableVolumeLogger(false)
+                .createAudioDeviceModule();
+            options.audioDeviceModule = audioDeviceModule;
+        }
         if (options.videoDecoderFactory == null || options.videoEncoderFactory == null) {
             EglBase.Context eglContext = EglUtils.getRootEglBaseContext();
             if (options.videoDecoderFactory == null) {

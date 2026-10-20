@@ -19,6 +19,8 @@ package org.jitsi.meet.sdk;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.media.AudioDeviceCallback;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 
 import com.facebook.react.bridge.Arguments;
@@ -34,9 +36,12 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 
 import org.jitsi.meet.sdk.log.JitsiMeetLogger;
+import org.webrtc.audio.JavaAudioDeviceModule;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -121,6 +126,39 @@ class AudioModeModule extends ReactContextBaseJavaModule {
     private static final String DEVICE_CHANGE_EVENT = "org.jitsi.meet:features/audio-mode#devices-update";
 
     /**
+     * Microphone list change event.
+     */
+    private static final String INPUT_CHANGE_EVENT = "org.jitsi.meet:features/audio-mode#inputs-update";
+
+    /**
+     * Passed to {@link #setAudioInput(String)} to let the system pick the microphone.
+     */
+    private static final String INPUT_AUTO = "AUTO";
+
+    /**
+     * Values of AudioDeviceInfo.TYPE_USB_HEADSET and TYPE_BLE_HEADSET, newer than minSdk.
+     */
+    private static final int TYPE_USB_HEADSET = 22;
+    private static final int TYPE_BLE_HEADSET = 26;
+
+    /**
+     * Id of the microphone the user picked, or null to let the system pick.
+     */
+    private Integer preferredInputId;
+
+    private final AudioDeviceCallback inputDeviceCallback = new AudioDeviceCallback() {
+        @Override
+        public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
+            onInputDevicesChanged();
+        }
+
+        @Override
+        public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
+            onInputDevicesChanged();
+        }
+    };
+
+    /**
      * List of currently available audio devices.
      */
     private Set<String> availableDevices = new HashSet<>();
@@ -175,6 +213,7 @@ class AudioModeModule extends ReactContextBaseJavaModule {
         Map<String, Object> constants = new HashMap<>();
 
         constants.put("DEVICE_CHANGE_EVENT", DEVICE_CHANGE_EVENT);
+        constants.put("INPUT_CHANGE_EVENT", INPUT_CHANGE_EVENT);
         constants.put("AUDIO_CALL", AUDIO_CALL);
         constants.put("DEFAULT", DEFAULT);
         constants.put("VIDEO_CALL", VIDEO_CALL);
@@ -203,6 +242,169 @@ class AudioModeModule extends ReactContextBaseJavaModule {
                 }
                 getContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(DEVICE_CHANGE_EVENT, data);
                 JitsiMeetLogger.i(TAG + " Updating audio device list");
+                notifyInputsChanged();
+            }
+        });
+    }
+
+    /**
+     * Maps a microphone to the input types shared with iOS, or null for inputs that aren't offered.
+     */
+    private static String inputTypeOf(AudioDeviceInfo info) {
+        switch (info.getType()) {
+            case AudioDeviceInfo.TYPE_BUILTIN_MIC:
+                return "BUILTIN";
+            case AudioDeviceInfo.TYPE_WIRED_HEADSET:
+                return "WIRED";
+            case AudioDeviceInfo.TYPE_BLUETOOTH_SCO:
+            case TYPE_BLE_HEADSET:
+                return "BLUETOOTH";
+            case AudioDeviceInfo.TYPE_USB_DEVICE:
+            case TYPE_USB_HEADSET:
+                return "USB";
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Gets the microphones that can be offered; phones often report several built-in ones, only
+     * the first is kept.
+     */
+    private List<AudioDeviceInfo> availableInputs() {
+        List<AudioDeviceInfo> inputs = new ArrayList<>();
+        boolean hasBuiltin = false;
+        for (AudioDeviceInfo info : audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)) {
+            String type = inputTypeOf(info);
+            if (type == null) {
+                continue;
+            }
+            if (info.getType() == AudioDeviceInfo.TYPE_BUILTIN_MIC) {
+                if (hasBuiltin) {
+                    continue;
+                }
+                hasBuiltin = true;
+            }
+            inputs.add(info);
+        }
+        return inputs;
+    }
+
+    /**
+     * Guesses the microphone in use: the preferred one, else the one the current route implies.
+     */
+    private Integer activeInputId(List<AudioDeviceInfo> inputs) {
+        if (preferredInputId != null) {
+            return preferredInputId;
+        }
+        String[] order = DEVICE_BLUETOOTH.equals(selectedDevice)
+            ? new String[] { "BLUETOOTH", "WIRED", "USB", "BUILTIN" }
+            : new String[] { "WIRED", "USB", "BUILTIN" };
+        for (String type : order) {
+            for (AudioDeviceInfo info : inputs) {
+                if (type.equals(inputTypeOf(info))) {
+                    return info.getId();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Notifies JS land of the available microphones. Must run on the audio thread.
+     */
+    private void notifyInputsChanged() {
+        List<AudioDeviceInfo> inputs = availableInputs();
+        Integer activeId = activeInputId(inputs);
+        WritableArray data = Arguments.createArray();
+        for (AudioDeviceInfo info : inputs) {
+            WritableMap inputInfo = Arguments.createMap();
+            inputInfo.putString("uid", String.valueOf(info.getId()));
+            inputInfo.putString("type", inputTypeOf(info));
+            CharSequence name = info.getProductName();
+            inputInfo.putString("name", name != null ? name.toString() : null);
+            inputInfo.putBoolean("selected", activeId != null && activeId == info.getId());
+            inputInfo.putBoolean("preferred", preferredInputId != null && preferredInputId == info.getId());
+            data.pushMap(inputInfo);
+        }
+        getContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(INPUT_CHANGE_EVENT, data);
+    }
+
+    private void onInputDevicesChanged() {
+        runInAudioThread(new Runnable() {
+            @Override
+            public void run() {
+                if (audioDisabled) {
+                    return;
+                }
+                if (preferredInputId != null && findInput(preferredInputId) == null) {
+                    JitsiMeetLogger.i(TAG + " Preferred microphone gone, back to automatic");
+                    applyPreferredInput(null);
+                }
+                notifyInputsChanged();
+            }
+        });
+    }
+
+    private AudioDeviceInfo findInput(int id) {
+        for (AudioDeviceInfo info : availableInputs()) {
+            if (info.getId() == id) {
+                return info;
+            }
+        }
+        return null;
+    }
+
+    private void applyPreferredInput(AudioDeviceInfo info) {
+        preferredInputId = info != null ? info.getId() : null;
+        JavaAudioDeviceModule adm = ReactInstanceManagerHolder.getAudioDeviceModule();
+        if (adm == null) {
+            JitsiMeetLogger.w(TAG + " No owned audio device module, cannot pick the microphone");
+            return;
+        }
+        adm.setPreferredInputDevice(info);
+    }
+
+    /**
+     * Sets the microphone used for the call, or {@code "AUTO"} to let the system pick. Bluetooth
+     * microphones need the Bluetooth route, so picking one also moves the output there.
+     *
+     * @param uid the id of the microphone, as reported in the inputs list.
+     */
+    @ReactMethod
+    public void setAudioInput(final String uid) {
+        runInAudioThread(new Runnable() {
+            @Override
+            public void run() {
+                if (audioDisabled) {
+                    return;
+                }
+                AudioDeviceInfo info = null;
+                if (!INPUT_AUTO.equals(uid)) {
+                    try {
+                        info = findInput(Integer.parseInt(uid));
+                    } catch (NumberFormatException e) {
+                        info = null;
+                    }
+                    if (info == null) {
+                        JitsiMeetLogger.w(TAG + " Microphone not available: " + uid);
+                        notifyInputsChanged();
+                        return;
+                    }
+                }
+                JitsiMeetLogger.i(TAG + " Preferred microphone set to: " + uid);
+                applyPreferredInput(info);
+
+                if (info != null
+                        && "BLUETOOTH".equals(inputTypeOf(info))
+                        && !DEVICE_BLUETOOTH.equals(selectedDevice)
+                        && availableDevices.contains(DEVICE_BLUETOOTH)
+                        && mode != -1) {
+                    userSelectedDevice = DEVICE_BLUETOOTH;
+                    updateAudioRoute(mode, false);
+                    return;
+                }
+                notifyInputsChanged();
             }
         });
     }
@@ -228,6 +430,7 @@ class AudioModeModule extends ReactContextBaseJavaModule {
      */
     @Override
     public void initialize() {
+        audioManager.registerAudioDeviceCallback(inputDeviceCallback, null);
         runInAudioThread(new Runnable() {
             @Override
             public void run() {
@@ -305,6 +508,14 @@ class AudioModeModule extends ReactContextBaseJavaModule {
             mode = -1;
             availableDevices.clear();
             resetSelectedDevice();
+            runInAudioThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (preferredInputId != null) {
+                        applyPreferredInput(null);
+                    }
+                }
+            });
         }
 
         promise.resolve(null);
@@ -393,6 +604,9 @@ class AudioModeModule extends ReactContextBaseJavaModule {
         if (mode == DEFAULT) {
             selectedDevice = null;
             userSelectedDevice = null;
+            if (preferredInputId != null) {
+                applyPreferredInput(null);
+            }
 
             notifyDevicesChanged();
             return true;
